@@ -10,11 +10,46 @@
 				padding: 10px 10px 10px 10px;
 				font-family: sans-serif;
 			}
+		</style>
 	</head>
 	<body>
 		<h1> 1 认识HTML </h1>
 		<h2> 关于标记 </h2>
 		<p> HTML（HyperText Markup Language）是超文本标记语言的缩写。</p>
-		<p> 浏览器通常显示的标题一共有6级，从<h1>到<h6>，字体由大到小。</p>
+		<p> 浏览器通常显示的标题一共有6级，从&lt;h1&gt;到&lt;h6&gt;，字体由大到小。</p>
+		<p> HTML5是HTML的最新版本，它让我们编写HTML的很多做法大大简化，而且还提供了一些新的功能。</p>
+		<h2> 标记磁贴 </h2>
+		<p> &lt;h1&gt;：开始一个标题 </p>
+		<p> &lt;/h1&gt;：结束一个标题 </p>
+		<p> &lt;h2&gt;：开始一个子标题 </p>
+		<p> &lt;/h2&gt;：结束一个子标题 </p>
+		<p> &lt;p&gt;：开始一个段落</p>
+		<p> &lt;/p&gt;：结束一个段落</p>
+		<h2> 标记剖析 </h2>
+		<p> 元素 = 开始标记 + 内容 + 结束标记 </p>
+		<h2> 使用CSS指定样式 </h2>
+		<p> CSS是样式层叠样式表（Cascading Style Sheets）的缩写，它提供了一种方法来告诉浏览器页面中的元素如何显示 </p>
+		<h2> 认识style元素 </h2>
+		<p> 通过属性，可以提供一个元素的附加信息。比如说，如果有一个&lt;style&gt;元素，属性允许你准确地指定是什么类型的样式。 </p>
+		<h2> 深入研究CSS </h2>
+		<p> HTML和CSS是完全不同的语言，它们的工作截然不同。HTML用来创建结构，CSS用来创建样式。 </p>
+		<p> CSS中的<q>body</q>表示<q>{</q>和<q>}</q>之间的所有CSS要应用于HTML &lt;body&gt;元素中的内容。</p>
+		<h2> 基于HTML和CSS复习 </h2>
+		<ol>
+			<li> HTML和CSS是我们用来创建网页的语言。</li>
+			<li> Web服务器存储并提供由HTML和CSS创建的网页。浏览器获取页面，并根据HTML和CSS显示网页的内容。</li>
+			<li> HTML是超文本标记语言（HyperText Markup Language）的缩写，用来建立网页的结构。</li>
+			<li> CSS是层叠样式表（Cascading Style Sheets）的缩写，用来控制HTML的表现。</li>
+			<li> 通过HTML，我们利用标记来标示内容提供结构。我们把匹配标记以及它们包围的内容称为元素。</li>
+			<li> 元素由3部分组成：一个开始标记、内容和一个结束标记。不过有些元素（比如&lt;img&gt;）有所例外。</li>
+			<li> 开始标记可以有属性。</li>
+			<li> 结束标记在左尖括号后面、标记名前面有一个<q>/</q>，以明确这是结束标记。</li>
+			<li> 所有页面都要有一个&lt;html&gt;元素，其中要有一个&lt;head&gt;元素和一个&lt;body&gt;元素。</li>
+			<li> 网页的信息放在&lt;head&gt;元素里。</li>
+			<li> &lt;body&gt;元素里的内容就是你将在浏览器里看到的东西。</li>
+			<li> 大多数空白符（制表符、回车、空格）都会被浏览器忽略，不过可以利用空白符让你的HTML（对你）更有可读性。</li>
+			<li> 可以在&lt;style&gt;元素中写CSS规则，为HTML网页增加CSS。&lt;style&gt;元素总要放在&lt;head&gt;元素里。</li>
+			<li> 可以使用CSS在HTML中指定元素的特性。</li>
+		</ol>
 	</body>
 </html>
