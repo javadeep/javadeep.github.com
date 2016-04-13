@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title>拒绝垄断，走向开放的Header Bidding</title>
+        <style type="text/css">
+            body {
+                background-color: #d2b48c;
+                margin-left: 10%;
+                margin-right: 10%;
+                border: 2px dotted black;
+                padding: 10px 10px 10px 10px;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> 拒绝垄断，走向开放的Header Bidding </h1>
+        <p>
+            出处：<a href="http://mini.eastday.com/a/160411095509960.html">http://mini.eastday.com/a/160411095509960.html</a>
+        </p>
+        <h2> 一句话说清楚Head Bidding是什么？ </h2>
+        <p> 定义：媒体网站在调用广告服务器获取广告之前，通过页面的JavaScript进行若干Bidder询价，而后再调用广告服务器，实现收益最大化。</p>
+        <p> 与传统ADX的DSP竞价的区别：传统媒体网页通常对接单个ADX/SSP，Heading Bidding可以让Publisher保持这种合作之外，额外的主动对接其他的Bidder(ADX/SSP/AdNetwork等任何可出价的东西）。</p>
+        <p> ADX和Header Bidding比较：</p>
+        <ul>
+            <li>概括：ADX模式通过服务器ADX对接Bidder；Header Bidding模式调用传统ADX服务之前，提供一个客户端询价的过程，以获得最高收益。</li>
+            <li>协议：ADX模式是OpenRTB竞价；Header Bidding模式无严格标准，各个Bidder接口大同小异。</li>
+            <li>对接技术：ADX模式服务器对接；Header Bidding模式以JavaScript SDK为主，少量服务器改造。</li>
+            <li>挑选Bidder：ADX模式中ADX可控制的配置；Header Bidding模式中Publisher可控的JavaScript配置。</li>
+            <li>议价能力掌控：ADX模式中ADX/SSP Only；Header Bidding模式中Publisher可控。</li>
+        </ul>
+        <h2> Header Bidding为什么会出现？</h2>
+        <p> 解决的问题：以往Publisher只对接一家ADX/SSP，现在可以主动选多家Bidder进行竞价，提高竞价密度以增加收入机会。</p>
+        <p> 给谁使用：目前是以PC的Publisher为主。</p>
+        <h2> Header Bidding的技术方案 </h2>
+        <p> 网站嵌入一些Header Bidding解决方案的JavaScript SDK，完成如下几步：</p>
+        <ol>
+            <li> 网站通过JavaScript，直接获取多个Bidder报价。 </li>
+            <li> 网站调用自己的广告服务器，确定最后竞价胜者。 </li>
+            <li> 生成创意（可能是Bidder，或是原有广告服务器，例如DFP等）。</li>
+        </ol>
+    </body>
+</html>
