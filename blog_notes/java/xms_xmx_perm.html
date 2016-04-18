@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>Xms Xmx PermSize MaxPermSize区别</title>
+        <style type="text/css">
+            body {
+                background-color: #d2b48c;
+                margin-left: 10%;
+                margin-right: 10%;
+                border: 2px dotted black;
+                padding: 10px 10px 10px 10px;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> Xms Xmx PermSize MaxPermSize区别 </h1>
+        <p>
+            出处：<a href="http://www.cnblogs.com/mingforyou/archive/2012/03/03/2378143.html">http://www.cnblogs.com/mingforyou/archive/2012/03/03/2378143.html</a>
+        </p>
+        <h2> 1. 参数的含义 </h2>
+        <p> -vmargs -Xms128M -Xmx512M -XX:PermSize=64M -XX:MaxPermSize=128M </p>
+        <ul>
+            <li> -vmargs 说明后面是VM的参数，所以后面的其实都是JVM的参数了 </li>
+            <li> -Xms128m JVM初始分配的堆内存 </li>
+            <li> -Xmx512m JVM最大允许分配的堆内存，按需分配 </li>
+            <li> -XX:PermSize=64M JVM初始分配的非堆内存 </li>
+            <li> -XX:MaxPermSize=128M JVM最大允许分配的非堆内存，按需分配 </li>
+        </ul>
+        <h3> 1). 堆(Heap)和非堆(Non-heap)内存 </h3>
+        <p> Java 虚拟机具有一个堆，堆是运行时数据区域，所有类实例和数组的内存均从此处分配。堆是在 Java 虚拟机启动时创建的。</p>
+        <p> 在JVM中堆之外的内存称为非堆内存(Non-heap memory)。</p>
+        <p> 堆就是Java代码可及的内存，是留给开发人员使用的。 </p>
+        <p> 非堆就是JVM留给自己用的，
+ 所以方法区、JVM内部处理或优化所需的内存(如JIT编译后的代码缓存)、每个类结构(如运行时常数池、字段和方法数据)以及方法和构造方法的代码都在非堆内存中。</p>
+        <h4> 堆内存分配 </h4>
+        <p>  JVM初始分配的堆内存由-Xms指定，默认是物理内存的1/64；JVM最大分配的堆内存由-Xmx指定，默认是物理内存的1/4。默认空余堆内存小于40%时，JVM就会增大堆直到-Xmx的最大限制； 空余堆内存大于70%时，JVM会减少堆直到-Xms的最小限制。</p>
+        <p> 服务器一般设置-Xms、-Xmx 相等以避免在每次GC 后调整堆的大小。</p>
+        <p> 如果-Xmx 不指定或者指定偏小，应用可能会导致java.lang.OutOfMemory错误，此错误来自JVM，不是Throwable的，无法用try...catch捕捉。</p>
+        <h4> 非堆内存分配 </h4>
+        <p> JVM使用-XX:PermSize设置非堆内存初始值，由XX:MaxPermSize设置最大非堆内存的大小。</p>
+        <p> XX:MaxPermSize设置过小会导致java.lang.OutOfMemoryError: PermGen space 就是内存溢出。 </p>
+        <p>内存溢出原因：</p>
+        <ol>
+            <li> 这一部分内存用于存放Class和Meta的信息，Class在被 Load的时候被放入PermGen space区域，它和存放Instance的Heap区域不同。</li>
+            <li> GC(Garbage Collection)不会在主程序运行期对PermGen space进行清理，所以如果你的APP会LOAD很多CLASS 的话,就很可能出现PermGen space错误。</li>
+        </ol>
+        <h3> 2). JVM内存限制（最大值）</h3>
+        <p> 首先JVM内存限制于实际的最大物理内存，假设物理内存无限大的话，JVM内存的最大值跟操作系统有很大的关系。</p>
+    </body>
+</html>
