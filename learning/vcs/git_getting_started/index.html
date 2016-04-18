@@ -96,5 +96,18 @@
             $ git help config
         </blockquote>
         <h2> 1.8 总结 </h2>
+        <h1> 2. Git基础 </h1>
+        <h2> 2.1 获取Git仓库 </h2>
+        <h3> 在现有目录中初始化仓库 </h3>
+        <p> 如果你打算使用 Git 来对现有的项目进行管理，你只需要进入该项目目录并输入：</p>
+        <blockquote>
+            $ git init
+        </blockquote>
+        <p> 如果你是在一个已经存在文件的文件夹（而不是空文件夹）中初始化 Git 仓库来进行版本控制的话，你应该开始跟踪这些文件并提交。 你可通过 git add 命令来实现对指定文件的跟踪，然后执行 git commit 提交：</p>
+        <blockquote>
+            $ git add *.c
+            $ git add LICENSE
+            $ git commit -m 'initial project version'
+        </blockquote>
     </body>
 </html>
