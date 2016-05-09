@@ -25,7 +25,15 @@
                 <p><a href="./index.html#chapter_1_2">1.2 环境搭建</a></p>
                 <blockquote>
                     <p><a href="./index.html#chapter_1_2_1">1.2.1 安装GitHub</a></p>
+                    <p><a href="./index.html#chapter_1_2_2">1.2.2 安装Gradle</a></p>
+                    <p><a href="./index.html#chapter_1_2_3">1.2.3 下载Spring</a></p>
                 </blockquote>
+            </blockquote>
+            <p><a href="./index.html#chapter_2">第2章 容器的基本实现</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_2_1">2.1 容器基本用法</a></p>
+                <p><a href="./index.html#chapter_2_2">2.2 功能分析</a></p>
+                <p><a href="./index.html#chapter_2_3">2.3 工程搭建</a></p>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -111,5 +119,35 @@
         <p> 构建Spring源码环境首先要安装GitHub以及Gradle。</p>
         <br>
         <h3 id="chapter_1_2_1"> 1.2.1 安装GitHub </h3>
+        <p> 安装Git即可。</p>
+        <br>
+        <h3 id="chapter_1_2_2"> 1.2.2 安装Gradle </h3>
+        <p> idea自带Gradle插件。 </p>
+        <br>
+        <h3 id="chapter_1_2_3"> 1.2.3 下载Spring </h3>
+        <blockquote>
+            git clone git://github.com/SpringSource/Spring-framework.git
+        </blockquote>
+        <p> 导入idea：参考工程中<q>import-into-idea.md</q>进行配置即可。</p>
+        <br><br><br>
+        <h1 id="chapter_2"> 第2章 容器的基本实现 </h1>
+        <br><br>
+        <h2 id="chapter_2_1"> 2.1 容器基本用法 </h2>
+        <br><br>
+        <h2 id="chapter_2_2"> 2.2 功能分析 </h2>
+        <p> 完成的功能包括：</p>
+        <ol>
+            <li> 读取配置文件beanFactoryTest.xml </li>
+            <li> 根据beanFactoryTest.xml中配置找到对应的类的配置，并实例化。</li>
+            <li> 调用实例化后的实例。</li>
+        </ol>
+        <p> 如果想完成预想功能，至少需要3个类：</p>
+        <ul>
+            <li> ConfigReader：用于读取及验证配置文件。</li>
+            <li> ReflectionUtil：用于根据配置文件中的配置进行反射实例化。</li>
+            <li> App：用于完成整个逻辑的串联。</li>
+        </ul>
+        <br><br>
+        <h2 id="chapter_2_3"> 2.3 工程搭建 </h2>
     </body>
 </html>
