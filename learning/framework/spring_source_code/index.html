@@ -34,6 +34,11 @@
                 <p><a href="./index.html#chapter_2_1">2.1 容器基本用法</a></p>
                 <p><a href="./index.html#chapter_2_2">2.2 功能分析</a></p>
                 <p><a href="./index.html#chapter_2_3">2.3 工程搭建</a></p>
+                <p><a href="./index.html#chapter_2_4">2.4 Spring的结构组成</a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_4_1">2.4.1 beans包的层级结构</a></p>
+                    <p><a href="./index.html#chapter_2_4_2">2.4.2 核心类介绍</a></p>
+                </blockquote>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -149,5 +154,30 @@
         </ul>
         <br><br>
         <h2 id="chapter_2_3"> 2.3 工程搭建 </h2>
+        <br><br>
+        <h2 id="chapter_2_4"> 2.4 Spring的结构组成 </h2>
+        <br>
+        <h3 id="chapter_2_4_1"> 2.4.1 beans包的层级结构 </h3>
+        <p> beans包中的各个源码包的功能如下：</p>
+        <ul>
+            <li> src/main/java 用于展现Spring的主要逻辑。</li>
+            <li> src/main/resources 用于存放系统的配置文件。</li>
+            <li> src/test/java 用于对主要逻辑进行单元测试。</li>
+            <li> src/test/resources 用于存放测试用的配置文件。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_2_4_2"> 2.4.2 核心类介绍 </h3>
+        <h4> 1. DefaultListableBeanFactory </h4>
+        <p> XmlBeanFactory继承自DeafultListableBeanFactory，而DefaultListableBeanFactory是整个bean加载的核心部分，是Spring注册及加载bean的默认实现，而对于XmlBeanFactory与DefaultListableBeanFactory不同的地方其实在XmlBeanFactory中使用了自定义的XML读取器XmlBeanDefinitionReader，实现了个性化的BeanDefinitionReader读取，DefaultListableBeanFactory继承了AbstractAutowireCapableBeanFactory并实现了ConfigurableListableBeanFactory以及BeanDefinitionRegistry接口。相关类图如下：</p>
+        <img src="http://img.xue163.com/s2images51cto/wyfs02/M02/7A/6D/wKioL1aokKqQVU02AACmYXZBPO8878.png">
+        <ul>
+            <li> AliasRegistry：定义对alias的简单增删改等操作。</li>
+            <li> SimpleAliasRegistry：主要使用map作为alias的缓存，并对接口AliasRegistry进行实现。</li>
+            <li> SingletonBeanRegistry：定义对单例的注册及获取。</li>
+            <li> BeanFactory：定义获取bean及bean的各种属性。</li>
+            <li> DefaultSingletonBeanRegistry：对接口SingletonBeanRegistry各函数的实现。</li>
+            <li> HierarchicalBeanFactory：继承BeanFactory，也就是在BeanFactory定义的功能的基础上增加了对parentFactory的支持。</li>
+            <li> BeanDefinitionRegistry：定义对BeanDefinition的各种增删改操作。</li>
+        </ul>
     </body>
 </html>
