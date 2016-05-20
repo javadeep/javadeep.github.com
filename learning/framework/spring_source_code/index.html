@@ -178,6 +178,15 @@
             <li> DefaultSingletonBeanRegistry：对接口SingletonBeanRegistry各函数的实现。</li>
             <li> HierarchicalBeanFactory：继承BeanFactory，也就是在BeanFactory定义的功能的基础上增加了对parentFactory的支持。</li>
             <li> BeanDefinitionRegistry：定义对BeanDefinition的各种增删改操作。</li>
+            <li> FactoryBeanRegistrySuppoort：在DefaultSingletonBeanRegistry基础上增加了对FactoryBean的特殊处理功能。</li>
+            <li> ConfigurableBeanFactory：提供配置Factory的各种方法。</li>
+            <li> ListableBeanFactory：根据各种条件获取bean的配置清单。</li>
+            <li> AbstractBeanFactory：综合FactoryBeanRegistrySupport和ConfigurableBeanFactory的功能。</li>
+            <li> AutowireCapableBeanFactory：提供创建bean、自动注入、初始化以及应用bean的后处理器。</li>
+            <li> AbstractAutowireCapableBeanFactory：综合AbstractBeanFactory并对接口AutowireCapableBeanFactory进行实现。</li>
+            <li> ConfigurableListableBeanFactory：BeanFactory配置清单、指定忽略类型及接口等。</li>
+            <li> DefaultListableBeanFactory：综合上面所有功能，主要是对Bean注册后的处理。</li>
         </ul>
+        <p> XmlBeanFactory对DefaultListableBeanFactory类进行了扩展，主要用于从XML文档中读取BeanDefinition，对于注册及获取Bean都是使用从父类DefaultListableBeanFactory类继承的方法去实现，而唯独与父类不同的个性化实现就是增加了XmlBeanDefinitionReader类型的reader属性。在XmlBeanFactory中主要使用reader属性对资源文件进行读取和注册。</p>
     </body>
 </html>
