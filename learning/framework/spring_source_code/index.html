@@ -39,6 +39,10 @@
                     <p><a href="./index.html#chapter_2_4_1">2.4.1 beans包的层级结构</a></p>
                     <p><a href="./index.html#chapter_2_4_2">2.4.2 核心类介绍</a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_2_5">2.5 容器的基础XmlBeanFactory</a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_5_1">2.5.1 配置文件封装</a></p>
+                </blockquote>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -188,5 +192,97 @@
             <li> DefaultListableBeanFactory：综合上面所有功能，主要是对Bean注册后的处理。</li>
         </ul>
         <p> XmlBeanFactory对DefaultListableBeanFactory类进行了扩展，主要用于从XML文档中读取BeanDefinition，对于注册及获取Bean都是使用从父类DefaultListableBeanFactory类继承的方法去实现，而唯独与父类不同的个性化实现就是增加了XmlBeanDefinitionReader类型的reader属性。在XmlBeanFactory中主要使用reader属性对资源文件进行读取和注册。</p>
+        <h4> 2. XmlBeanDefinitionReader </h4>
+        <ul>
+            <li> ResourceLoader：定义资源加载器，主要应用于根据给定的资源文件地址返回对应的Resource。</li>
+            <li> BeanDefinitionReader：主要定义资源文件读取并转换为BeanDefinition的各个功能。</li>
+            <li> EnvironmentCapable：定义获取Environment方法。</li>
+            <li> DocumentLoader：定义从资源文件加载到转换为Document的功能。</li>
+            <li> AbstractBeanDefinitionReader：对EnvironmentCapable、BeanDefinitionReader类定义的功能进行实现。</li>
+            <li> BeanDefinitionDocumentReader：定义读取Document并注册BeanDefinition功能。</li>
+            <li> BeanDefinitionParserDelegate：定义解析Element的各种方法。</li>
+        </ul>
+        <p> 在XmlBeanDefinitionReader中主要包含以下几步的处理：</p>
+        <ol>
+            <li> 通过继承自AbstractBeanDefinitionReader中的方法，来使用ResourceLoader将资源文件路径转换为对应的Resource文件。</li>
+            <li> 通过DocumentLoader对Resource文件进行转换，将Resource文件转换为Document文件。</li>
+            <li> 通过实现接口BeanDefinitionDocumentReader的DefaultBeanDefinitionDocumentReader类对Document进行解析，并使用BeanDefinitionParserDelegate对Element进行解析。</li>
+        </ol>
+        <br><br>
+        <h2 id="chapter_2_5"> 2.5 容器的基础XmlBeanFactory </h2>
+        <blockquote>
+            BeanFactory bf = new XmlBeanFactory(new ClassPathResource("beanFactoryTest.xml"));
+        </blockquote>
+        <p> 上面代码的执行逻辑：</p>
+        <blockquote>
+            <p> 1. new ClassPathResource("beanFactoryTest.xml") </p>
+            <p> 2. resource: Resource </p>
+            <p> 3. new XmlBeanFactory(resource) </p>
+            <blockquote>
+                <p> 3.1 loadBeanDefinitions(resource) </p>
+                <p> 3.2 loadBeanDefinitionNum: int </p>
+            </blockquote>
+        </blockquote>
+        <br>
+        <h3 id="chapter_2_5_1"> 2.5.1 配置文件封装 </h3> 
+        <p> Spring配置文件读取是通过ClassPathResource进行封装的。Spring对其内部使用到的资源实现了自己的抽象结构：Resource接口来封装底层资源。</p>
+        <blockquote>
+            public interface InputStreamSource { <br>
+            <blockquote>
+                InputStream getInputStream() throws IOException; <br>
+            </blockquote>
+            } <br>
+            public interface Resource extends InputStreamSource { <br>
+            <blockquote>
+                boolean exists(); <br>
+                boolean isReadable(); <br>
+                boolean isOpen(); <br>
+                URL getURL() throws IOException; <br>
+                URI getURI() throws IOException; <br>
+                File getFile() throws IOException; <br>
+                long lastModified() throws IOException; <br>
+                Resource createRelative(String relativePath) throws IOException; <br>
+                String getFilename(); <br>
+                String getDescription(); <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <p> 对不同来源的资源文件都有相应的Resource实现：文件（FileSystemResource）、Classpath资源（ClassPathResource）、URL资源（UrlResource）、InputStream资源（InputStreamResource）、Byte数组（ByteArrayResource）等。</p>
+        <p> 在日常的开发工作中，资源文件的加载也是经常用到的，可以直接使用Spring提供的类，比如希望加载文件时可以使用以下代码：</p>
+        <blockquote>
+            Resource resource = new ClassPathResource("beanFactoryTest.xml"); <br>
+            InputStream inputStream = resource.getInputStream(); <br>
+        </blockquote>
+        <p> 当通过Resource相关类完成了对配置文件进行封装后配置文件的读取工作就全权交给了XmlBeanDefinitionReader来处理了。</p>
+        <p> XmlBeanFactory的初始化有若干办法，Spring中提供了很多的构造函数，如：</p>
+        <blockquote>
+            public XmlBeanFactory(Resource resource) throws BeansException { <br>
+            <blockquote>
+                // 调用XmlBeanFactory(Resource, BeanFactory)构造方法 <br>
+                this(resource, null); <br>
+            </blockquote>
+            } <br>
+            public XmlBeanFactory(Resource resource, BeanFactory parentBeanFactory) throws BeansException { <br>
+            <blockquote>
+                super(parentBeanFactory); <br>
+                this.reader.loadBeanDefinitions(resource); <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <p> 上面函数中的代码this.reader.loadBeanDefinitions(resource)才是资源加载的真正实现。</p>
+        <p> 在XmlBeanDefinitionReader加载数据前还有一个调用父类构造函数初始化的过程：super(parentBeanFactory)，跟踪代码到父类AbstractAutowireCapableBeanFactory的构造函数中：</p>
+        <blockquote>
+            public AbstractAutowireCapableBeanFactory() { <br>
+            <blockquote>
+                super(); <br>
+                ignoreDependencyInterface(BeanNameAware.class); <br>
+                ignoreDependencyInterface(BeanFactoryAware.class); <br>
+                ignoreDependencyInterface(BeanClassLoaderAware.class); <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <br>
+        <h3 id="chapter_2_5_2"> 2.5.2 加载Bean </h3>
+        <p> 在XmlBeanFactory构造函数中调用了XmlBeanDefinitionReader类型的reader属性提供的方法this.reader.loadBeanDefinitions(resource)，而这句代码则是整个资源加载的切入点。</p>
     </body>
 </html>
