@@ -78,7 +78,10 @@
                 <blockquote>
                     <p><a href="./index.html#chapter_2_4_1">2.4.1 Java堆溢出</a></p>
                     <p><a href="./index.html#chapter_2_4_2">2.4.2 虚拟机栈和本地方法栈溢出</a></p>
+                    <p><a href="./index.html#chapter_2_4_3">2.4.3 方法区和运行时常量池溢出</a></p>
+                    <p><a href="./index.html#chapter_2_4_4">2.4.4 本机直接内存溢出 </a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_2_5">2.5 本章小结</a></p>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -307,5 +310,18 @@
         <p> 通过不断地建立线程的方式可以产生内存溢出异常。在这种情况下，为每个线程的栈分配的内容越大，反而越容易产生内存溢出异常。每个线程分配到的栈容量越大，可以建立的线程数量自然就越少，建立线程时就越容易把剩下的内存耗尽。</p>
         <p> 如果是建立过多线程导致的内存溢出，在不能减少线程数或者更换64位虚拟机的情况下，就只能通过减少最大堆和减少栈容量来换取更多的线程。</p>
         <p> 如果是建立过多线程导致的内存溢出，异常堆栈信息<q>java.lang.OutOfMemoryError</q>会跟着进一步提示<q>unable to create new native thread</q>。</p>
+        <br>
+        <h3 id="chapter_2_4_3"> 2.4.3 方法区和运行时常量池溢出 </h3>
+        <p> 我们可以通过-XX:PermSize和-XX:MaxPermSize限制方法区大小。</p>
+        <p> 运行时常量池溢出，在OutOfMemoryError后面跟随的提示信息是<q>PermGen space</q>，说明运行时常量池属于方法区的一部分。</p>
+        <p> 方法区用于存放Class的相关信息，如类名、访问修饰符、常量池、字段描述、方法描述等。</p>
+        <p> 方法区溢出也是一种常见的内存溢出异常，一个类要被垃圾收集器回收掉，判定条件是比较苛刻的。</p>
+        <br>
+        <h3 id="chapter_2_4_4"> 2.4.4 本机直接内存溢出 </h3>
+        <p> DirectMemory容量可以通过-XX: MaxDirectMemorySize指定，如果不指定，则默认与Java堆最大值（-Xmx指定）一样。</p>
+        <p> 由DirectMemory导致的内存溢出，一个明显的特征是在Heap Dump文件中不会看见明显的异常，如果发现OOM之后Dump文件很小，而程序中又直接或间接使用了NIO，那就可以考虑检查一下是不是这方面的原因。</p>
+        <br><br>
+        <h2 id="chapter_2_5"> 2.5 本章小结 </h2>
+        <p> 虽然Java有垃圾收集机制，但内存溢出异常离我们仍然并不遥远。</p>
     </body>
 </html>
