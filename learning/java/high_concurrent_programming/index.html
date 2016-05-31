@@ -49,6 +49,14 @@
                     <p><a href="./index.html#chapter_1_4_2">1.4.2 Gustafson定律 </a></p>
                     <p><a href="./index.html#chapter_1_4_3">1.4.3 Amdahl定律和Gustafson定律是否相互矛盾 </a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_1_5">1.5 回到Java：JMM </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_1_5_1">1.5.1 原子性（Atomicity） </a></p>
+                    <p><a href="./index.html#chapter_1_5_2">1.5.2 可见性（Visibility） </a></p>
+                    <p><a href="./index.html#chapter_1_5_3">1.5.3 有序性（Ordering） </a></p>
+                    <p><a href="./index.html#chapter_1_5_4">1.5.4 哪些指令不能重排：Happen-Before规则 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_1_6">1.6 参考文献 </a></p>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -139,5 +147,39 @@
         <br>
         <h3 id="chapter_1_4_3"> 1.4.3 Amdahl定律和Gustafson定律是否相互矛盾 </h3>
         <p> 这两个定律并不矛盾。从极端角度来说，如果系统中没有可被串行化的代码（即F=1），那么对于这两个定律，其加速比都是1。反之，如果系统中可串行化代码比重达到100%，那么这两个定律得到的加速比都是n（处理器个数）。</p>
+        <br><br>
+        <h2 id="chapter_1_5"> 1.5 回到Java：JMM </h2>
+        <p> Java内存模型（JMM）</p>
+        <p> JMM的关键技术点都是围绕着多线程的原子性、可见性和有序性来建立的。</p>
+        <br>
+        <h3 id="chapter_1_5_1"> 1.5.1 原子性（Atomicity）</h3>
+        <p> 原子性是指一个操作是不可中断的。即使是在多个线程一起执行的时候，一个操作一旦开始，就不会被其他线程干扰。</p>
+        <p> 对于32位系统来说，long型数据的读写不是原子性的。如果两个线程同时对long进行写入的话（或者读取），对线程之间的结果是有干扰的。</p>
+        <br>
+        <h3 id="chapter_1_5_2"> 1.5.2 可见性（Visibility）</h3>
+        <p> 可见性是指当一个线程修改了某一个共享变量的值，其他线程是否能够立即知道这个修改。</p>
+        <p> 除了缓存优化或者硬件优化会导致可见性问题外，指令重排以及编译器的优化，都有可能导致一个线程的修改不会立即被其他线程察觉。</p>
+        <br>
+        <h3 id="chapter_1_5_3"> 1.5.3 有序性（Ordering）</h3>
+        <p> 有序性问题的原因是因为程序在执行时，可能会进行指令重排，重排后的指令与原指令的顺序未必一致。</p>
+        <p> 指令重排可以保证串行语义一致，但是没有义务保证多线程间的语义也一致。</p>
+        <p> ALU指算数逻辑单元。它是CPU的执行单元，是CPU的核心组成部分，主要功能是进行二进制算术运算。</p>
+        <p> 之所以需要做指令重排，就是为了尽量少的中断流水线。</p>
+        <p> 指令重排对于提高CPU处理性能是十分必要的。</p>
+        <br>
+        <h3 id="chapter_1_5_4"> 1.5.4 哪些指令不能重排：Happen-Before规则</h3>
+        <p> 以下基本原则是指令重排不可违背的：</p>
+        <ul>
+            <li> 程序顺序原则：一个线程内保证语义的串行性 </li>
+            <li> volatile规则：对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入。这保证了volatile变量的可见性。</li>
+            <li> 锁规则：如果对一个锁解锁后，再加锁，那么加锁的动作绝对不能重排到解锁动作之前。</li>
+            <li> 传递性：A先于B，B先于C，那么A必然先于C。</li>
+            <li> 线程的start()方法先于它的每一个动作。</li>
+            <li> 线程的所有操作先于线程的终结（Thread.join()）。</li>
+            <li> 线程的中断（interrupt()）先于被中断线程的代码（不运行中断之后的代码）。</li>
+            <li> 对象的构造函数执行、结束先于finalize()方法，。</li>
+        </ul>
+        <br><br>
+        <h2 id="chapter_1_6"> 1.6 参考文献 </h2>
     </body>
 </html>

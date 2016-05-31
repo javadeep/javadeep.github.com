@@ -284,5 +284,36 @@
         <br>
         <h3 id="chapter_2_5_2"> 2.5.2 加载Bean </h3>
         <p> 在XmlBeanFactory构造函数中调用了XmlBeanDefinitionReader类型的reader属性提供的方法this.reader.loadBeanDefinitions(resource)，而这句代码则是整个资源加载的切入点。</p>
+        <p> 整个处理过程如下：</p>
+        <ol>
+            <li> 封装资源文件。当进入XmlBeanDefinitionReader后首先对参数Resource使用EncodedResource类进行封装。</li>
+            <li> 获取输入流。从Resource中获取对应的InputStream并构造InputSource。</li>
+            <li> 通过构造的InputSource实例和Resource实例继续调用函数doLoadBeanDefinitions。</li>
+        </ol>
+        <p> loadBeanDefinitions函数具体的实现过程：</p>
+        <blockquote>
+            public int loadBeanDefinitions(Resource resource) throws BeanDefinitionStoreException { <br>
+            <blockquote>
+                return loadBeanDefinitions(new EncodedResource(resource)); <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <p> EncodedResource这个类主要是用于对资源文件的编码进行处理的。其中的主要逻辑体现在getReader()方法中，当设置了编码属性的时候Spring会使用相应的编码作为输入流的编码。</p>
+        <blockquote>
+            public Reader getReader() throws IOException { <br>
+            <blockquote>
+                if (this.encoding != null) { <br>
+                <blockquote>
+                    return new InputStreamReader(this.resource.getInputStream(), this.encoding);
+                </blockquote>
+                } <br>
+                else { <br>
+                <blockquote>
+                    return new InputStreamReader(this.resource.getInputStream());
+                </blockquote>
+                } <br>
+            </blockquote>
+            } <br>
+        </blockquote>
     </body>
 </html>
