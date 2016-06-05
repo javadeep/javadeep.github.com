@@ -1,0 +1,332 @@
+<html>
+    <head>
+        <title>走近Guava</title>
+        <style type="text/css">
+            body {
+                background-color: #d2b48c;
+                margin-left: 10%;
+                margin-right: 10%;
+                border: 2px dotted black;
+                padding: 10px 10px 10px 10px;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> 走近Guava </h1>
+        <p> 出处： </p>
+        <ul>
+            <li><a href="http://my.oschina.net/indestiny/blog/214668">走近Guava（一）：基本工具 </a></li>
+            <li><a href="http://my.oschina.net/indestiny/blog/215041">走近Guava（二）：函数式编程 </a></li>
+            <li><a href="http://my.oschina.net/indestiny/blog/215839">走近Guava（三）：集合 </a></li> 
+            <li><a href="http://my.oschina.net/indestiny/blog/219368">走近Guava（四）：并发 </a></li>
+            <li><a href="http://my.oschina.net/indestiny/blog/219375">走近Guava（五）：缓存 </a></li>
+            <li><a href="http://my.oschina.net/indestiny/blog/219421">走近Guava（六）：事件总线EventBus </a></li>
+            <li><a href="http://my.oschina.net/indestiny/blog/219802">走近Guava（七）：文件操作 </a></li>
+        </ul>
+        <br><br>
+        <h2> 走近Guava（一）：基本工具 </h2>
+        <br>
+        <h3> 使用Joiner类 </h3>
+        <p> Joiner一旦创建不可变，符合不变性，因此线程安全。</p>
+        <h4> 链接字符串列表 </h4>
+        <blockquote>
+            // Joiner类一旦创建则不可变，满足不可变性，因此线程安全<br>
+            Joiner joiner = Joiner.on(","); <br>
+            <br>
+            // 忽略null <br>
+            String excludeNullString = joiner.skipNulls().join(list); <br>
+            // 将null替代为empty字符串 <br>
+            String replaceNullString = joiner.useForNull("empty").join(list); <br>
+            <br>
+            // 不对null处理，默认会抛NullPointerException <br>
+            String defaultNullString = joiner.join(langs); <br>
+        </blockquote>
+        <h4> 链接多个字符串 </h4>
+        <blockquote>
+            String res = joiner.skipNulls().join(null, "foo","bar"); <br>
+        </blockquote>
+        <h4> appendTo到实现了Appendable接口的类中 </h4>
+        <blockquote>
+            //append到StringBuilder <br>
+            StringBuilder stringBuilder = new StringBuilder(); <br>
+            Joiner joiner = Joiner.on(",").skipNulls(); <br>
+            joiner.appendTo(stringBuilder, "appendTo", "StringBuilder"); <br>
+            <br>
+            //append到输出流 <br>
+            FileWriter writer = new FileWriter("append_text.txt"); <br>
+            joiner.appendTo(writer, "appendTo", "FileWriter"); <br>
+        </blockquote>
+        <h4> 通过MapJointer链接Map对象 </h4>
+        <blockquote>
+            MapJoiner mapJoiner = Joiner.on(",").withKeyValueSeparator("="); <br>
+            String str = mapJoiner.join(map); <br>
+        </blockquote>
+        <br>
+        <h3> 使用Splitter类 </h3>
+        <p> Splitter功能与Joiner相反，其对字符串进行分割操作。</p>
+        <h4> 分割字符串，返回iterable&lt;String&gt;对象 </h4>
+        <blockquote>
+            String str = "try ,do , your , best"; <br>
+            Splitter splitter = Splitter.on(",").trimResults(); //用逗号分割且去掉每个字符串周围的空格 <br>
+            Iterable&lt;String&gt; res = splitter.split(str); <br>
+        </blockquote>
+        <h4> 使用MapSplitter分割字符串，返回Map&lt;String,String&gt;对象 </h4>
+        <blockquote>
+            String str = "key3=value3,key2=value2,key1=value1"; <br>
+            MapSplitter splitter = Splitter.on(",").trimResults().withKeyValueSeparator("="); <br>
+            Map&lt;String, String&gt; map = splitter.split(str); <br>
+        </blockquote>
+        <br>
+        <h3> 使用Strings类 </h3>
+        <blockquote>
+            //用padChar填充string后面, 使string最小长度为minLength <br>
+            padEnd(String string, int minLength, char padChar) <br>
+            //用padChar填充string前面, 使string最小长度为minLength <br>
+            padStart(String string, int minLength, char padChar) <br>
+            //null转换为"" <br>
+            nullToEmpty(String string) <br>
+            //""转换为null <br>
+            emptyToNull(String string) <br>
+            //true, 如果字符串为null或者"" <br>
+            isNullOrEmpty(Strng string) <br>
+        </blockquote>
+        <br>
+        <h3> 使用CharMatcher类 </h3>
+        <h4> 替换多个连续的空格为单个空格 </h4>
+        <blockquote>
+            String scrubbed = CharMatcher.WHITESPACE.collapseFrom(str,' '); <br>
+        </blockquote>
+        <h4> 将头尾的空格去掉 </h4>
+        <blockquote>
+            String scrubbed = CharMatcher.WHITESPACE.trimAndCollapseFrom(str, ' '); <br>
+        </blockquote>
+        <h4> 保留制定字符，如数字，字母等 </h4>
+        <blockquote>
+            String retained = CharMatcher.JAVA_DIGIT.retainFrom(str); //保留数字 <br>
+        </blockquote>
+        <h4> 你也可以通过Or组合多个CharMatcher </h4>
+        <blockquote>
+            CharMatcher cm = CharMatcher.JAVA_DIGIT.or(CharMatcher.WHITESPACE); <br>
+            String retained = cm.retainFrom("foo9 89y xbar 234");//保留数字和空格 <br>
+        </blockquote>
+        <br> 
+        <h3> 使用Preconditions类 </h3>
+        <p> 这是一个用于判断条件的一个工具，类似junit中Assert功能。</p>
+        <blockquote>
+            Preconditions.checkNotNull(obj, "检查对象不能为空"); <br>
+            Preconditions.checkElementIndex(index, arr.length,"检查数组索引是否越界"); <br>
+            Preconditions.checkArgument(valueToSet <= 100, "检查参数值"); <br>
+            Preconditions.checkState(validateObjectState(), "检查对象状态（返回boolean值）"); <br>
+        </blockquote>
+        <br>
+        <h3> 使用Objects类 </h3>
+        <blockquote>
+            public class Book implements Comparable&lt;Book&gt; { <br>
+            <blockquote>
+                private Person author; <br>
+                private String title; <br>
+                private String publisher; <br>
+                private String isbn; <br>
+                private double price; <br>
+                <br>
+                @Override <br>
+                public int compareTo(Book o) { <br>
+                <blockquote>
+                    return ComparisonChain.start() //链式比较，在第一个非0处返回
+                    <blockquote><blockquote>
+                        .compare(this.title, o.getTitle()) <br>
+                        .compare(this.author, o.getAuthor()) <br>
+                        .compare(this.publisher, o.getPublisher()) <br>
+                        .compare(this.isbn, o.getIsbn()) <br>
+                        .compare(this.price, o.getPrice()) <br>
+                        .result(); <br>
+                    </blockquote></blockquote>
+                </blockquote>
+                } <br>
+                <br>
+                @Override <br>
+                public int hashCode() { <br>
+                <blockquote>
+                    return Objects.hashCode(title, author, publisher, isbn);//hashCode生成 <br>
+                </blockquote>
+                } <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <br><br>
+        <h2> 走近Guava（二）：函数式编程 </h2>
+        <br>
+        <h3> 使用Function接口 </h3>
+        <p> 功能：将输入类型转换为输出类型 </p>
+        <blockquote>
+            public interface Function&lt;F, T&gt; { <br>
+            <blockquote>
+                T apply(@Nullable F input); <br>
+            </blockquote>
+        } <br>
+        </blockquote>
+        <br>
+        <h3> 使用Functions类 </h3>
+        <h4> Functions.forMap()方法 </h4>
+        <blockquote>
+            Map&lt;String, State&gt; states = new HashMap&lt;String, State&gt;(); <br>
+            Function&lt;String, State&gt; lookup = Functions.forMap(states); <br>
+            System.out.println(lookup.apply(key));//key不存在会抛异常 <br>
+            <br>
+            //你也可以给不存在的key指定一个默认值 <br>
+            Function&lt;String, State&gt; lookup = Functions.forMap(states, null);
+        </blockquote>
+        <h4> Functions.compose()方法 </h4>
+        <blockquote>
+            Functions.compose(function1, function2).apply(key); <br>
+            // 等价于 <br>
+            function1.apply(function2.apply(key)); <br>
+        </blockquote>
+        <br>
+        <h3> 使用Predicate接口 </h3>
+        <blockquote>
+            public interface Predicate&lt;T&gt; { <br>
+            <blockquote>
+                boolean apply(T input); //不同于Function.apply, 该apply用于过滤对象 <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <br>
+        <h3> 使用Predicates类 </h3>
+        <blockquote>
+            Predicates.and(predicate1,predicate2);//且 <br> 
+            Predicates.or(predicate1,predicate2);//或 <br>
+            Predicates.not(predicate);//非 <br>
+            Predicates.compose(predicate1,predicate2);//组合转换再过滤 <br>
+        </blockquote>
+        <br><br>
+        <h2> 走近Guava（三）：集合 </h2>
+        <br>
+        <h3> FluentIterable类 </h3>
+        <blockquote>
+            Iterable&lt;String&gt; ages = FluentIterable.from(ps).filter(function1).transform(function2); <br>
+        </blockquote>
+        <br>
+        <h3> Lists类 </h3>
+        <h4> 使用Lists.newArrayList创建列表 </h4>
+        <blockquote>
+            List&lt;String&gt; ps = Lists.newArrayList("a", "b", "c", "d", "e"); <br>
+        </blockquote>
+        <h4> 使用Lists.partition()方法分割列表 </h4>
+        <blockquote>
+            //[a, b, c, d, e] --> [[a, b], [c, d], [e]] - <br>
+            List&lt;List&lt;Person&gt;&gt; subList = Lists.partition(ps, 2); <br>
+        </blockquote>
+        <br>
+        <h3> Sets类 </h3>
+        <h4> Sets.difference()求S1-S2 </h4>
+        <blockquote>
+            Sets.SetView&lt;String&gt; sv = Sets.difference(s1, s2); <br>
+        </blockquote>
+        <h4> Sets.intersection()求S1,S2交集 </h4>
+        <blockquote>
+            Sets.SetView&lt;String&gt; sv = Sets.intersection(s1, s2); <br>
+        </blockquote>
+        <h4> Sets.union()求合集 </h4>
+        <blockquote>
+            Sets.SetView&lt;String&gt; sv = Sets.union(s1, s2); <br>
+        </blockquote>
+        <br>
+        <h3> Maps类 </h3>
+        <h4> Maps.uniqueIndex()将列表转换为map </h4>
+        <blockquote>
+            // 各个元素作为Map.values，key为Function.apply的返回值 <br>
+            Maps.uniqueIndex(ps, f); <br>
+        </blockquote>
+        <h4> Maps.asMap()，各个元素作为Map.keys，value为Function.apply返回值 </h4>
+        <blockquote>
+            Maps.asMap(Sets.newHashSet(ps), f); <br>
+        </blockquote>
+        <h4> Maps Transform API </h4>
+        <blockquote>
+            Maps.transformEntries(map, new Maps.EntryTransformer&lt;String, Boolean, String&gt;() { <br>
+            <blockquote>
+                @Override <br>
+                public String transformEntry(String key, Boolean value) { <br>
+                <blockquote>
+                    return value ? "yes" : "no"; <br>
+                </blockquote>
+            } <br>
+            </blockquote>
+        }); 将Map&lt;String, Boolean&gt; --&gt; Map&lt;String, String&gt;
+        </blockquote>
+        <br>
+        <h3> Multimaps类 </h3>
+        <p> 一个key对应多个value </p>
+        <h4> ArrayListMultiMap </h4>
+        <blockquote>
+            ArrayListMultimap&lt;String, String&gt; multiMap = ArrayListMultimap.create(); <br>
+            multiMap.put("Bar", "1"); <br>
+            multiMap.put("Bar", "2"); <br>
+            multiMap.put("Bar", "3"); <br>
+            multiMap.put("Bar", "3"); <br>
+            multiMap.put("Bar", "3"); <br>
+            System.out.println(multiMap); //{Bar=[1, 2, 3, 3, 3]}，相同的value会重复，value内部是一个List <br>
+        </blockquote>
+        <h4> HashMultiMap </h4>
+        <blockquote>
+            HashMultimap&lt;String, String&gt; multiMap = HashMultimap.create(); <br>
+            multiMap.put("Bar", "1"); <br>
+            multiMap.put("Bar", "2"); <br>
+            multiMap.put("Bar", "3"); <br>
+            multiMap.put("Bar", "3"); <br>
+            multiMap.put("Bar", "3"); <br>
+            System.out.println(multiMap); //{Bar=[1, 2, 3]}，相同的value不会重复，value内部是一个Set <br>
+        </blockquote>
+        <br>
+        <h3> BiMap </h3>
+        <p> 其限制value是唯一的，且通过value可以找到key </p>
+        <blockquote>
+            BiMap&lt;String,String&gt; biMap = HashBiMap.create(); <br>
+            biMap.put("1","Tom"); <br>        
+            biMap.put("2","Tom"); //抛出异常 <br>
+            biMap.forcePut("2", "Tom"); //{2=Tom}，1的值被清了 <br>
+            BiMap&lt;String, String&gt; inverseMap = biMap.inverse(); //反转key-value <br>
+        </blockquote>
+        <br>
+        <h3> Table </h3>
+        <p> 它具有2个Key[行,列]，对应一个值 </p>
+        <h4> HashBasedTable </h4>
+        <blockquote>
+            HashBasedTable&lt;Integer, Integer, String&gt; table = HashBasedTable.create(); <br>
+            table.put(1, 1, "Rook"); <br>
+            table.put(1, 2, "Knight"); <br>
+            table.put(1, 3, "Bishop"); <br>
+            System.out.println(table.contains(1, 1)); //true <br>
+            System.out.println(table.containsColumn(2)); //true <br>
+            System.out.println(table.containsRow(1)); //true <br>
+            System.out.println(table.containsValue("Rook")); //true <br>
+            System.out.println(table.remove(1, 3)); //Bishop <br>
+            System.out.println(table.get(3, 4)); //null <br>
+            <br>
+            // Table views，表行列视图 <br>
+            Map&lt;Integer,String&gt; columnMap = table.column(1); <br>
+            Map&lt;Integer,String&gt; rowMap = table.row(2); <br>
+        </blockquote>
+        <br>
+        <h3> Ordering </h3>
+        <p> Ordering提供了一些简单强大的排序功能 </p>
+        <blockquote>
+            Comparator&lt;MyClass&gt; myComparator = new Comparator&lt;MyClass>&gt; () { <br>
+            <blockquote>
+                @Override <br>
+                public int compare(MyClass a, MyClass b) { ... } <br> 
+            </blockquote>
+            }; <br>
+            <br>
+            Ordering.from(myComparator).reverse(); //反序 <br>
+            Ordering.from(myComparator).nullsFirst(); //null值最小放在前面 <br>
+            Ordering.from(myComparator1).compound(myComparator2); //组合比较器，二次排序 <br>
+            Collections.sort(list, myOrdering); //排序 <br>
+            List&lt;MyClass&gt; topFive = Ordering.from(myComparator).greatestOf(list, 5); //前5个 <br>
+            List&lt;MyClass&gt; bottomThree = Ordering.from(myComparator).leastOf(list, 3); //最后3个 <br> 
+        </blockquote>
+       
+    </body>
+</html>
