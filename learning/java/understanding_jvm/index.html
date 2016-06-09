@@ -84,6 +84,40 @@
                 <p><a href="./index.html#chapter_2_5">2.5 本章小结</a></p>
             </blockquote>
             <p><a href="./index.html#chapter_3">第3章 垃圾收集器与内存分配策略</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_3_1">3.1 概述</a></p>
+                <p><a href="./index.html#chapter_3_2">3.2 对象已死吗 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_2_1">3.2.1 引用计数算法</a></p>
+                    <p><a href="./index.html#chapter_3_2_2">3.2.2 可达性分析算法</a></p>
+                    <p><a href="./index.html#chapter_3_2_3">3.2.3 再谈引用</a></p>
+                    <p><a href="./index.html#chapter_3_2_4">3.2.4 生存还是死亡 </a></p>
+                    <p><a href="./index.html#chapter_3_2_5">3.2.5 回收方法区 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_3">3.3 垃圾收集算法 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_3_1">3.3.1 标记-清除算法 </a></p>
+                    <p><a href="./index.html#chapter_3_3_2">3.3.2 复制算法 </a></p>
+                    <p><a href="./index.html#chapter_3_3_3">3.3.3 标记-整理算法 </a></p>
+                    <p><a href="./index.html#chapter_3_3_4">3.3.4 分代收集算法 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_4">3.4 HotSpot的算法实现 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_4_1">3.4.1 枚举根节点 </a></p>
+                    <p><a href="./index.html#chapter_3_4_2">3.4.2 安全点 </a></p>
+                    <p><a href="./index.html#chapter_3_4_3">3.4.3 安全区域 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_5">3.5 垃圾收集器 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_5_1">3.5.1 Serial收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_2">3.5.2 ParNew收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_3">3.5.3 Parallel Scavenge收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_4">3.5.4 Serial Old收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_5">3.5.5 Parallel Old收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_6">3.5.6 CMS收集器 </a></p>
+                    <p><a href="./index.html#chapter_3_5_7">3.5.7 G1收集器 </a></p>
+                </blockquote> 
+            </blockquote>
         </blockquote>
         <br><br><br>
         <h1 id="forword">前言</h1>
@@ -330,5 +364,152 @@
         <br><br>
         <h2 id="chapter_3_1"> 3.1 概述 </h2>
         <p> 目前内存的动态分配与内存回收技术已经相当成熟，一切看起来都进入了<q>自动化</q>时代，但当需要排查各种内存溢出、内存泄露问题时，当垃圾收集成为系统达到更高并发量的瓶颈时，我们就需要对这些<q>自动化</q>的技术实施必要的监控和调节。</p>
+        <br><br>
+        <h2 id="chapter_3_2"> 3.2 对象已死吗 </h2>
+        <br>
+        <h3 id="chapter_3_2_1"> 3.2.1 引用计数算法 </h3>
+        <p> 主流的Java虚拟机里面没有选用引用计数算法来管理内存，其中最主要的原因是它很难解决对象之间相互循环引用的问题。</p>
+        <br>
+        <h3 id="chapter_3_2_2"> 3.2.2 可达性分析算法 </h3>
+        <p> 通过一系列的称为<q>GC Roots</q>的对象作为起始点，从这些节点开始向下搜索，搜索所走过的路径称为引用链（Reference Chain），当一个对象到GC Roots没有任何引用链相连（用图论的话来说，就是从GC Roots到这个对象不可达）时，则证明此对象是不可用的。</p>
+        <img src="http://img1.imgtn.bdimg.com/it/u=2069212403,2747155386&fm=11&gp=0.jpg">
+        <p> 在Java语言中，可作为GC Roots的对象包括： </p>
+        <ul>
+            <li> 虚拟机栈（栈帧中的本地变量表）中引用的对象。</li>
+            <li> 方法区中类静态属性引用的对象。</li>
+            <li> 方法区中常量引用的对象。</li>
+            <li> 本地方法栈中JNI（即一般说的Native方法）引用的对象。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_3_2_3"> 3.2.3 再谈引用 </h3>
+        <ul>
+            <li> 强引用：程序代码中普遍存在的，类似<q>Object obj = new Object()</q>这类的引用，只要强引用还存在，垃圾收集器永远不会回收掉被引用的对象。</li>
+            <li> 软引用：还有用但并非必需的对象。对于软引用关联着的对象，在系统将要发生内存溢出异常之前，将会把这些对象列进回收范围之中进行第二次回收。如果这次回收还没有足够的内存，才会抛出内存溢出异常。JDK提供了SoftReference类来实现软引用。</li>
+            <li> 弱引用：也是用来描述非必需对象的，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。JDK提供了WeakReference类来实现弱引用。 </li>
+            <li> 虚引用：最弱的一种引用关系。一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的就是能在这个对象被收集器回收时收到一个系统通知。JDK提供了PhantomReference类来实现虚引用。 </li>
+        </ul>
+        <br>
+        <h3 id="chapter_3_2_4"> 3.2.4 生存还是死亡 </h3>
+        <p> 如果对象在进行可达性分析后发现没有与GC Roots相连接的引用链，那它将会被第一次标记并且进行一次筛选，筛选的条件是此对象是否有必要执行finalize()方法。当对象没有覆盖finalize()方法，或者finalize()方法已经被虚拟机调用过，虚拟机将这两种情况视为<q>没有必要执行</q>。</p>
+        <p> 如果这个对象被判定为有必要执行finalize()方法，那么这个对象将会放置在一个叫做F-Queue的队列之中，并在稍后由一个虚拟机自动建立的、低优先级的Finalizer线程去执行它。这里所谓的<q>执行</q>是指虚拟机会触发这个方法，但并不承诺会等待它运行结束。</p>
+        <p> finalize()能做的所有工作，使用try-finally或者其他方式都可以做得更好、更及时。</p>
+        <h3 id="chapter_3_2_5"> 3.2.5 回收方法区 </h3>
+        <p> 在堆中，尤其是在新生代中，常规应用进行一次垃圾收集一般可以回收70%-95%的空间，而永久代的垃圾收集效率远低于此。</p>
+        <p> 永久代的垃圾收集主要回收两部分内容：废弃常量和无用的类。</p>
+        <p> 在大量使用反射、动态代理、CGLib等ByteCode框架，动态生成JSP以及OSGi这类频繁自定义ClassLoader的场景都需要虚拟机具备卸载的功能，以保证永久代不会溢出。</p>
+        <br><br>
+        <h2 id="chapter_3_3"> 3.3 垃圾收集算法 </h2>
+        <br>
+        <h3 id="chapter_3_3_1"> 3.3.1 标记—清除算法 </h3>
+        <p> 算法分为<q>标记</q>和<q>清除</q>两个阶段，首先标记出所有需要回收的对象，在标记完成后统一回收所有被标记的对象。</p>
+        <p> 不足： </p>
+        <ul>
+            <li> 效率问题：标记和清除两个过程的效率都不高。</li>
+            <li> 空间问题：标记清除之后会产生大量不连续的内存碎片，空间碎片太多可能会导致以后在程序运行过程中需要分配较大对象时，无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作。</li>
+        </ul>
+        <img height="336" width="600" src="http://img3.imgtn.bdimg.com/it/u=4272436537,1502591496&fm=15&gp=0.jpg">
+        <br>
+        <h3 id="chapter_3_3_2"> 3.3.2 复制算法 </h3>
+        <p> 将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块的内存用完了，就将还存活的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。</p>
+        <p> 代价：将内存缩小为了原来的一半，太高了。</p>
+        <img src="http://www.jayfeng.com/images/gc_mark_compact.png">
+        <p> 新生代中的对象98%是<q>朝生夕死</q>的，所以并不需要按照1:1的比例来划分内存空间，而是将内存分为一块较大的Eden空间和两块较小的Survivor空间，每次使用Eden和其中一块Survivor。当回收时，将Eden和Survivor中还存活着的对象一次性地复制到另外一块Survivor空间上，最后清理掉Eden和刚才用过的Survivor空间。</p>
+        <p> HotSpot虚拟机默认Eden和Survivor的大小比例是8:1。</p>
+        <p> 内存的分配担保：如果另外一块Survivor空间没有足够空间存放上一次新生代收集下来的存活对象时，这些对象将直接通过分配担保机制进入老年代。</p>
+        <br>
+        <h3 id="chapter_3_3_3"> 3.3.3 标记-整理算法 </h3>
+        <p> 老年代一般不能直接选用复制收集算法。</p>
+        <p> 根据老年代的特点，提出了<q>标记-整理</q>算法，标记过程仍然与<q>标记-清除</q>算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉边界以外的内存。</p>
+        <img width="501" height="309" src="http://img4.imgtn.bdimg.com/it/u=3931507371,1198982255&fm=21&gp=0.jpg">
+        <br>
+        <h3 id="chapter_3_3_4"> 3.3.4 分代收集算法 </h3>
+        <p> 在新生代中，每次垃圾收集时都发现有大批对象死去，只有少量存活，那就选用复制算法。</p>
+        <p> 老年代中因为对象存活率高、没有额外空间对它进行分配担保，就必须使用<q>标记-清理</q>或者<q>标记-整理</q>算法来进行回收。</p> 
+        <br><br>
+        <h2 id="chapter_3_4"> 3.4 HotSpot的算法实现 </h2>
+        <br>
+        <h3 id="chapter_3_4_1"> 3.4.1 枚举根节点 </h3>
+        <p> 在HotSpot的实现中，使用一组称为OopMap的数据结构来直接得知哪些地方存放着对象引用。在类加载完成的时候，HotSpot就把对象内什么偏移量上是什么类型的数据计算出来，在JIT编译过程中，也会在特定的位置记录下栈和寄存器中哪些位置是引用。</p>
+        <br>
+        <h3 id="chapter_3_4_2"> 3.4.2 安全点 </h3>
+        <p> HotSpot没有为每条指令都生成OapMap，只是在<q>特定的位置</q>记录了这些信息，这些位置称为安全点（Safepoint），即程序执行时并非在所有地方都能停顿下来开始GC，只有在到达安全点时才能暂停。</p>
+        <p> 如何在GC发生时让所有线程（这里不包括执行JNI调用的线程）都<q>都</q>到最近的安全点上再停顿下来？</p>
+        <ul>
+            <li> 抢先式中断（Preemptive Suspension）：不需要线程的执行代码主动去配合，在GC发生时，首先把所有线程全部中断，如果发现有线程中断的地方不在安全点上，就恢复线程，让它<q>跑</q>到安全点上（现在几乎没有虚拟机实现采用抢先式中断来暂停线程从而响应GC事件）</li>
+            <li> 主动式中断（Voluntary Suspension）：当GC需要中断线程的时候，不直接对线程操作，仅仅简单地设置一个标志，各个线程执行时主动去轮询这个标志，发现中断标志为真时就自己中断挂起。轮询标志的地方和安全点是重合的，另外再加上创建对象需要分配内存的地方。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_3_4_3"> 3.4.3 安全区域 </h3>
+        <p> 安全区域是指在一段代码片段之中，引用关系不会发生变化。在这个区域中的任意地方开始GC都是安全的。</p>
+        <p> 在线程执行到Safe Region中的代码时，首先标识自己已经进入了Safe Region，那样，在当这段时间里JVM要发起GC时，就不用管标识自己为Safe Region状态的线程了。在线程要离开Safe Region时，它要检查系统是否已经完成了根节点枚举（或者是整个GC过程），如果完成了，那线程就继续执行，否则它就必须等待直到收到可以安全离开Safe Region的信号为止。</p>
+        <br><br>
+        <h2 id="chapter_3_5"> 3.5 垃圾收集器 </h2>
+        <p> 如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
+        <img width="600" height="463" src="http://img0.imgtn.bdimg.com/it/u=2213618683,1531995707&fm=21&gp=0.jpg">
+        <p> 如果两个收集器之间存在连线，就说明它们可以搭配使用。</p>
+        <br>
+        <h3 id="chapter_3_5_1"> 3.5.1 Serial收集器 </h3>
+        <p> 单线程收集器，但并不仅仅只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束。又称<q>Stop The World</q>。</p>
+        <p> Serial/Serial Old收集器运行示意图：</p>
+        <img src="http://www.51cto.com/files/uploadimg/20110727/133301626.jpg">
+        <p> Serial收集器对于运行在Client模式下的虚拟机来说是一个很好的选择。</p>
+        <br>
+        <h3 id="chapter_3_5_2"> 3.5.2 ParNew收集器 </h3>
+        <p> ParNew收集器其实就是Serial收集器的多线程版本。</p>
+        <p> ParNew/Serial Old收集器运行示意图：</p>
+        <img src="http://image76.360doc.com/DownloadImg/2014/07/2520/43724306_3.jpg">
+        <p> 除了Serial收集器外，目前只有ParNew能与CMS收集器配合工作。</p>
+        <p> ParNew收集器在单CPU的环境下绝对不会有比Serial收集器更好的效果。但随着可以使用的CPU数量的增加，它对于GC时系统资源的有效利用还是很有好处的。</p>
+        <br>
+        <h3 id="chapter_3_5_3"> 3.5.3 Parallel Scavenge收集器 </h3>
+        <p> Parallel Scavenge收集器的目标则是达到一个可控制的吞吐量（Throughput）。如虚拟机总共运行了100分钟，其中垃圾收集花掉1分钟，那吞吐量就是99%。Parallel Scavenge收集器也经常称为<q>吞吐量优先</q>收集器。</p>
+        <p> Parallel Scavenge收集器有一个参数-XX:+UseAdaptiveSizePolicy值得关注。这是一个开关参数，当这个参数打开之后，就不需要手工指定新生代的大小（-Xmm）、Eden与Survivor区的比例（-XX:SurvivorRatio）、晋升老年代对象大小（-XX:PretenureSizeThreshold）等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量，这种调节方式称为GC自适应的调节策略（GC Ergonomics）。</p>
+        <p> 自适应调节策略也是Parallel Scavenge收集器与ParNew收集器的一个重要区别。</p>
+        <br>
+        <h3 id="chapter_3_5_4"> 3.5.4 Serial Old收集器 </h3>
+        <p> Serial Old是Serial收集器的老年代版本，它同样是一个单线程收集器，使用<q>标记-整理</q>算法。这个收集器的主要意义也是在于给Client模式下的虚拟机使用。</p>
+        <p> Serial/Serial Old收集器运行示意图：</p>
+        <img src="http://www.51cto.com/files/uploadimg/20110727/133301626.jpg">
+        <br>
+        <h3 id="chapter_3_5_5"> 3.5.5 Parallel Old收集器 </h3>
+        <p> Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和<q>标记-整理</q>算法。</p>
+        <p> 在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old收集器。</p>
+        <p> Parallel Scavenge/Parallel Old收集器运行示意图：</p>
+        <img src="http://img1.imgtn.bdimg.com/it/u=1881419748,2096715655&fm=21&gp=0.jpg">
+        <br>
+        <h3 id="chapter_3_5_6"> 3.5.6 CMS收集器 </h3>
+        <p> CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。</p>
+        <p> CMS收集器是基于<q>标记-清除</q>算法实现的，整个过程分为4个步骤：</p>
+        <ul>
+            <li> 初始标记 </li>
+            <li> 并发标记 </li>
+            <li> 重新标记 </li>
+            <li> 并发清除 </li>
+        </ul>
+        <p> 其中，初始标记、重新标记这两个步骤仍然需要<q>Stop The World</q>。</p>
+        <p> 初始标记仅仅只是标记一下GC Roots能直接关联到的对象，速度很快。</p>
+        <p> 并发标记阶段就是进行GC Roots Tracing的过程。</p>
+        <p> 重新标记阶段则是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间短。</p>
+        <p> 由于整个过程中耗时最长的并发标记和并发清除过程收集器线程都可以与用户线程一起工作，所以，从总体上来说，CMS收集器的内存回收过程是与用户线程一起并发执行的。</p>
+        <p> Concurrent Mark Sweep收集器运行示意图：</p>   
+        <img src="http://img1.imgtn.bdimg.com/it/u=3633202708,3349028389&fm=15&gp=0.jpg">
+        <p> CMS主要优点：并发收集、并发停顿，也称为并发停顿收集器（Concurrent Low Pause Collector）。</p>
+        <p> 缺点：</p>
+        <ul>
+            <li> CMS收集器对CPU资源非常敏感。在并发阶段，它虽然不会导致用户线程停顿，但是会因为占用了一部分线程（或者说CPU资源）而导致应用程序变慢，总吞吐量会降低。</li>
+            <li> CMS收集器无法处理浮动垃圾（Floating Garbage），可能出现<q>Concurrent Mode Failure</q>失败而导致另一次Full GC的产生。要是CMS运行期间预留的内存无法满足程序需要，就会出现一次<q>Concurrent Mode Failure</q>失败，这时虚拟机将启动后背预案：临时启动Serial Old收集器来重新进行老年代的垃圾收集，这样停顿时间就很长了。</li>
+            <li> CMS是一款基于<q>标记-清除</q>算法实现的收集器，收集结束时会有大量空间碎片产生。如果无法找到足够大的连续空间来分配当前对象，不得不提前触发一次Full GC。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_3_5_7"> 3.5.7 G1收集器 </h3>
+        <P> G1(Garbage-First)是一款面向服务器应用的垃圾收集器。与其他GC收集器相比，G1具备如下特点：</p>
+        <ul>
+            <li> 并行与并发 </li>
+            <li> 分代收集 </li>
+            <li> 空间整合 </li>
+            <li> 可预测的停顿 </li>
+        </ul>
+        <p> G1收集器运行示意图：</p>
+        <img src ="http://img4.imgtn.bdimg.com/it/u=3015395405,4048127103&fm=21&gp=0.jpg">
     </body>
 </html>
