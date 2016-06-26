@@ -42,6 +42,16 @@
                 <p><a href="./index.html#chapter_2_5">2.5 容器的基础XmlBeanFactory</a></p>
                 <blockquote>
                     <p><a href="./index.html#chapter_2_5_1">2.5.1 配置文件封装</a></p>
+                    <p><a href="./index.html#chapter_2_5_2">2.5.2 加载Bean </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_2_6">2.6 获取XML的验证模式 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_6_1">2.6.1 DTD与XSD区别</a></p>
+                    <p><a href="./index.html#chapter_2_6_2">2.6.2 验证模式的读取</a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_2_7">2.7 获取Document </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_7_1">2.7.1 EntityResolver用法</a></p>
                 </blockquote>
             </blockquote>
         </blockquote>
@@ -315,5 +325,40 @@
             </blockquote>
             } <br>
         </blockquote>
+        <p> 当构造好encodedResource对象后，再次转入了可复用方法loadBeanDefinitions(new EncodedResource(resource))，这个方法内部才是真正的数据准备阶段。 </p>
+        <p> 数据准备阶段逻辑：</p>
+        <ul>
+            <li> 首先对传入的Resource参数做封装，目的是考虑到Resource可能存在编码要求的情况。</li>
+            <li> 其次，通过SAX读取XML文件的方式来准备InputSource对象。</li>
+            <li> 最后，将准备的数据通过参数传入真正的核心处理部分doLoadBeanDefinitions(inputSource, encodedResource.getResource())。</li>
+        </ul>
+        <p> doLoadBeanDefinitions一共做了三件事：</p>
+        <ul>
+            <li> 获取对XML文件的验证模式（getValidationModeForResource()）。</li>
+            <li> 加载XML文件，并得到对应的Document（this.documentLoader.loadDocument()）。</li>
+            <li> 根据返回的Document注册Bean信息（registerBeanDefinitions()）。</li>
+        </ul>
+        <br><br>
+        <h2 id="chapter_2_6"> 2.6 获取XML的验证模式 </h2>
+        <p> XML文件的验证模式保证了XML文件的正确性，而比较常用的验证模式有两种：DTD和XSD。</p>
+        <br>
+        <h3 id="chapter_2_6_1"> 2.6.1 DTD与XSD区别 </h3>
+        <p> DTD（Document Type Definition）即文档类型定义，是一种XML约束模式语言，是XML文件的验证机制，属于XML文件组成的一部分。DTD是一种保证XML文档格式正确的有效方法，可以通过比较XML文档和DTD文件来看文档是否符合规范，元素和标签使用是否正确。一个DTD文档包含：元素的定义规则，元素间关系的定义规则，元素可使用的属性，可使用的实体或符号规则。</p>
+        <p> XML Schema语言就是XSD（XML Schemas Definition）。XML Schema描述了XML文档的结构。可以用一个指定的XML Schema来验证某个XML文档，以检查该XML文档是否符合其要求。文档设计者可以通过XML Schema指定一个XML文档所允许的结构和内容，并可据此检查一个XML文档是否有效的。XML Schema本身是一个XML文档，它符合XML语法结构。可以用通用的XML解析器解析它。</p>
+        <br>
+        <h3 id="chapter_2_6_2"> 2.6.2 验证模式的读取 </h3>
+        <p> Spring通过getValidationModeForResource方法来获取对应资源的验证模式。</p>
+        <p> 如果设定了验证模式则使用设定的验证模式（可以通过调用XmlBeanDefinitionReader中的setValidationMode方法进行设定），否则使用自动检测的方式。</p>
+        <p> 自动检测验证模式的功能是在函数detectValidationMode方法中实现的，在detectValidationMode函数中又将自动检测验证模式的工作委托给了专门处理类XmlValidationModeDetector，调用了XmlValidationModeDetector的validationModeDector方法。</p>
+        <p> Spring用来检测验证模式的办法就是判断是否包含DOCTYPE，如果包含就是DTD，否则就是XSD。</p>
+        <br><br>
+        <h2 id="chapter_2_7"> 2.7 获取Document </h2>
+        <p> XmlBeanFactoryReader类对于文档读取并没有亲力亲为，而是委托给了DocumentLoader去执行，这里的DocumentLoader是个接口，而真正调用的是DefaultDocumentLoader。</p>
+        <p> 首先创建DocumentBuilerFactory，再通过DocumentBuilderFactory创建DocumentBuilder，进而解析inputSource来返回Document对象。</p>
+        <p> 对于参数entityResolver，传如的是通过getEntityResolver()函数获取的返回值。</p>
+        <br>
+        <h3 id="chapter_2_7_1"> 2.7.1 EntityResolver用法 </h3>
+        <p> EntityResolver的作用是项目本身就可以提供一个如何寻找DTD声明的方法，即由程序来实现寻找DTD声明的过程，这样就避免了通过网络来寻找相应的声明。</p>
+        <p> Spring中使用DelegatingEntityResolver类为EntityResolver的实现类。</p>
     </body>
 </html>
