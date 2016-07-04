@@ -119,13 +119,23 @@
                     <p><a href="./index.html#chapter_3_5_8">3.5.8 理解GC日志 </a></p>
                     <p><a href="./index.html#chapter_3_5_9">3.5.9 垃圾收集器参数总结 </a></p>
                 </blockquote>
-                <p><a href="./index.html#chapter_3_5">3.6 内存分配与回收策略 </a></p>
+                <p><a href="./index.html#chapter_3_6">3.6 内存分配与回收策略 </a></p>
                 <blockquote>
                     <p><a href="./index.html#chapter_3_6_1">3.6.1 对象优先在Eden分配 </a></p>
                     <p><a href="./index.html#chapter_3_6_2">3.6.2 大对象直接进入老年代 </a></p>
                     <p><a href="./index.html#chapter_3_6_3">3.6.3 长期存活的对象将进入老年代 </a></p>
                     <p><a href="./index.html#chapter_3_6_4">3.6.4 动态对象年龄判定 </a></p>
-                </blockquote> 
+                    <p><a href="./index.html#chapter_3_6_5">3.6.5 空间分配担保 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_7">3.7 本章小结 </a></p> 
+            </blockquote>
+            <p><a href="./index.html#chapter_4">第4章 虚拟机性能监控与故障处理工具</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_4_1">4.1 概述 </a></p>
+                <p><a href="./index.html#chapter_4_2">4.2 JDK的命令行工具 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_4_2_1">4.2.1 jps：虚拟机进程状况工具 </a></p>
+                </blockquote>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -562,5 +572,32 @@
         <br>
         <h3 id="chapter_3_6_4"> 3.6.4 动态对象年龄判定 </h3>
         <p> 如果在Survivor空间中相同年龄所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代，无须等到MaxTenuringThreshold中要求的年龄。</p>
+        <h3 id="chapter_3_6_5"> 3.6.5 空间分配担保 </h3>
+        <p> 在发生Minor GC之前，虚拟机会先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果这个条件成立，那么Minor GC可以确保是安全的。如果不成立，则虚拟机会查看HandlePromotionFailure设置值是否允许担保失败。如果允许，那么会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试进行一次Minor GC，尽管这次Minor GC是有风险的；如果小于，或者HandlePromotionFailure设置不允许冒险，那这时也要改为进行一次Full GC。</p>
+        <p> 如果某次Minor GC存活后的对象突增，远远高于平均值的话，依然会导致担保失败（Handle Promotion Failure），那就只好在失败后重新发起一次Full GC。虽然担保失败时绕的圈子是最大的，但大部分情况下都还是会将HandlePromotionFailure开关打开，避免Full GC过于频繁。</p>
+        <p> JDK 6 Update 24之后的规则变为只要老年代的连续空间大于新生代对象总大小或者历次晋升的平均大小就会进行Minor GC，否则将进行Full GC。</p>
+        <br><br>
+        <h2 id="chapter_3_7"> 3.7 本章小结 </h2>
+        <br><br><br>
+        <h1 id="chapter_4"> 第4章 虚拟机性能监控与故障处理工具 </h1>
+        <br><br>
+        <h2 id="chapter_4_1"> 4.1 概述 </h2>
+        <p> 给定一个系统定位问题的时候，只是、经验是关键基础，数据是依据，工具是运用知识处理数据的手段。这里说的数据包括：运行日志、异常堆栈、GC日志、线程快照（threaddump/javacore文件）、堆转储快照（headdump/hprof文件）等。</p>
+        <br><br>
+        <h2 id="chapter_4_2"> 4.2 JDK的命令行工具 </h2>
+        <br>
+        <h3 id="chapter_4_2_1"> 4.2.1 jps：虚拟机进程状况工具 </h3>
+        <blockquote>
+            jps -l <br>
+        </blockquote>
+        <p> 可以列出正在运行的虚拟机进程，并显示虚拟机执行主类（Main Class，main()函数所在的类）名称以及这些进程的本地虚拟机唯一ID（Local Virtual Machine Identifier，LVMID）。</p>
+        <p> LVMID与操作系统的进程ID（Process Identifier，PID）是一致的。</p>
+        <p> jps工具主要选项：</p>
+        <ul>
+            <li> -q：只输出LVMID，省略主类的名称 </li>
+            <li> -m：输出虚拟机进程启动时传递给主类main()函数的参数 </li>
+            <li> -l：输出主类的全名，如果进程执行的是jar包，输出Jar路径 </li>
+            <li> -v：输出虚拟机进程启动时JVM参数 </li>
+        </ul>
     </body>
 </html>

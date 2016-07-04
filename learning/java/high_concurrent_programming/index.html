@@ -65,7 +65,24 @@
                 <blockquote>
                     <p><a href="./index.html#chapter_2_2_1">2.2.1 新建线程 </a></p>
                     <p><a href="./index.html#chapter_2_2_2">2.2.2 终止线程 </a></p>
+                    <p><a href="./index.html#chapter_2_2_3">2.2.3 线程中断 </a></p>
+                    <p><a href="./index.html#chapter_2_2_4">2.2.4 等待（wait）和通知（notify） </a></p>
+                    <p><a href="./index.html#chapter_2_2_5">2.2.5 挂起（suspend）和继续执行（resume）线程 </a></p>
+                    <p><a href="./index.html#chapter_2_2_6">2.2.6 等待线程结束（join）和谦让（yield）</a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_2_3">2.3 volatile与Java内存模型（JMM）</a></p>
+                <p><a href="./index.html#chapter_2_4">2.4 分门别类的管理：线程组 </a></p>
+                <p><a href="./index.html#chapter_2_5">2.5 驻守后台：守护线程（Daemon） </a></p>
+                <p><a href="./index.html#chapter_2_6">2.6 先干重要的事：线程优先级 </a></p>
+                <p><a href="./index.html#chapter_2_7">2.7 线程安全的概念与synchronized </a></p>
+                <p><a href="./index.html#chapter_2_8">2.8 程序中的幽灵：隐蔽的错误 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_8_1">2.8.1 无提示的错误案例 </a></p>
+                    <p><a href="./index.html#chapter_2_8_2">2.8.2 并发下的ArrayList </a></p>
+                    <p><a href="./index.html#chapter_2_8_3">2.8.3 并发下诡异的HashMap </a></p>
+                    <p><a href="./index.html#chapter_2_8_4">2.8.4 初学者常见问题：错误的加锁 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_2_9">2.9 参考文献 </a></p>
             </blockquote>
             <p><a href="./index.html#chapter_6">第6章 Java8与并发</a></p>
             <blockquote>
@@ -262,6 +279,191 @@
             </blockquote>
             } <br>
         </blockquote>
+        <br>
+        <h3 id="chapter_2_2_3">2.2.3 线程中断</h3>
+        <p> 线程中断并不会使线程立即退出，而是给线程发送一个通知，告知目标线程，有人希望你退出啦！至于目标线程接到通知后如何处理，则完全由目标线程自行决定。</p>
+        <blockquote>
+            public void Thread.interrupt() // 中断线程<br>
+            public boolean Thread.isInterrupted() // 判断是否被中断<br>
+            public static boolean Thread.interrupted() // 判断是否被中断，并清除当前中断状态<br>
+        </blockquote>
+        <p> Thread.sleep()方法会让当前线程休眠若干时间，它会抛出一个InterruptedException中断异常，当线程在sleep休眠时，如果被中断，这个异常就会产生。</p>
+        <blockquote>
+            Thread t1 = new Thread() { <br>
+            <blockquote>
+                @Override <br>
+                public void run() { <br>
+                <blockquote>
+                    while (true) { <br>
+                    <blockquote>
+                        if (Thread.currentThread().isInterrupted()) { <br>
+                        <blockquote>
+                            System.out.println("Interrupted!"); <br>
+                            break; <br>
+                        </blockquote>
+                        } <br>
+                        try { <br>
+                            Thread.sleep(2000); <br>
+                        } catch (InterruptedException e) { <br>
+                        <blockquote>
+                            System.out.println("Interrupted When Sleep"); <br>
+                            // 设置中断状态 <br>
+                            Thread.currentThread().interrupt(); <br>
+                        </blockquote>
+                        } <br>
+                        Thread.yield(); <br>
+                    </blockquote>
+                    } <br>
+                </blockquote>
+                } <br>
+            </blockquote>
+            }; <br>
+            t1.start(); <br>
+            Thread.sleep(2000); <br>
+            t1.interrupt(); <br>
+        </blockquote>
+        <p> Thread.sleep()方法由于中断而抛出异常，此时，它会清除中断标记，如果不加处理，那么在下一次循环开始时，就无法捕获这个中断，故在异常处理中，再次设置中断标记位。</p>
+        <br>
+        <h3 id="chapter_2_2_4">2.2.4 等待（wait）和通知（notify）</h3>
+        <p> Object类中有两个非常重要的接口线程：</p>
+        <blockquote>
+            public final void wait() throws InterruptedException <br>
+            public final native void notify() <br>
+        </blockquote>
+        <p> 线程A中，调用了obj.wait()方法，那么线程A就会停止继续执行，而转为等待状态。线程A会一直等到其他线程调用了obj.notify()方法为止。这时，obj对象就俨然成为多个线程之间的有效通信手段。</p>
+        <p> 如果一个线程调用了object.wait()，那么它就会进入object对象的等待队列。这个等待队列中，可能会有多个线程，因为系统运行多个线程同时等待某一个对象。当object.notify()被调用时，它就会从这个等待队列中，随机选择一个线程，并将其唤醒。这个选择是不公平的，并不是先等待的线程会优先被选择，这个选择完全是随机的。</p>
+        <p> 除了notify()方法外，Object对象还有一个类似的notifyAll()方法，它和notify()的功能基本一致，但不同的是，它会唤醒在这个等待队列中所有等待的线程，而不是随机选择一个。</p>
+        <p> Object.wait()方法并不是可以随便调用的。它必须包含在对应的synchronzied语句中，无论是wait()或者notify()都需要首先获得目标对象的一个监视器。</p>
+        <p> wait()方法执行前，首先必须获得object对象的监视器。而wait()方法执行后，会释放这个监视器。这样做的目的是使得其他等待在object对象上的线程不至于因为该线程的休眠而全部无法正常执行。</p>
+        <p> notify()调用前，也必须获得object的监视器，此时需要其他线程已经释放了该监视器。执行了notify()方法后会尝试唤醒一个等待线程。被唤醒的线程要做的第一件事并不是执行后续的代码，而是要尝试重新获得object的监视器，如果无法获得，则还必须等待这个监视器。当监视器顺利获得后，被唤醒的线程才可以真正意义上的继续执行。</p>
+        <p> Object.wait()和Thread.sleep()方法都可以让线程等待若干时间。除了wait()可以被唤醒外，另外一个主要区别就是wait()方法会释放目标对象的锁，而Thread.sleep()方法不会释放任何资源。</p>
+        <p> notify()和notifyAll()都是Object对象用于通知处在等待对象的线程的方法。两者的最大区别在于：</p>
+        <ul>
+            <li> notifyAll使所有原来在该对象上等待被notify的线程统统退出wait的状态，变成等待该对象上的锁，一旦该对象被解锁，他们就会去竞争。</li>
+            <li> notify只选择一个wait状态线程进行通知，并使它获得该对象上的锁，但不惊动其他同样在等待被该对象notify的线程们。当第一个线程运行完毕以后释放对象上的锁此时如果该对象没有再次使用notify语句，则即便该对象已经空闲，其他wait状态等待的线程由于没有得到该对象的通知，继续处在wait状态，直到这个对象发出一个notify或notifyAll，它们等待的是被notify或notifyAll，而不是锁。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_2_2_5">2.2.5 挂起（suspend）和继续执行（resume）线程</h3>
+        <p> 这两个操作是一对相反的操作，被挂起的线程，必须要等到resume()操作后，才能继续执行。它们是早已被标注为废弃方法。</p>
+        <p> 不推荐使用suspend()去挂起线程的原因，是因为suspend()在导致线程暂停的同时，并不会去释放任何锁资源。此时，其他任何线程想要访问被它暂用的锁时，都会被牵连，导致无法正常继续运行。直到对应的线程进行了resume()操作，被挂起的线程才能继续，从而其他所有阻塞在相关锁上的线程也可以继续执行。</p>
+        <p> 一个利用wait()和notify()方法，在应用层面实现suspend()和resume()功能的例子：</p>
+        <blockquote>
+            public static class ChangeObjectThread extends Thread { <br>
+            <blockquote>
+                volatile boolean suspendme = false; <br>
+                <br>
+                public void suspendMe() { <br>
+                <blockquote>
+                    suspendme = true; <br>
+                </blockquote>
+                } <br>
+                <br>
+                public void resumeMe() { <br>
+                <blockquote>
+                    suspendme = false; <br>
+                    synchronized(this) { <br>
+                    <blockquote>
+                        notify(); <br>
+                    </blockquote>
+                    } <br>
+                </blockquote>
+                } <br>
+                <br>
+                @Override <br>
+                public void run() { <br>
+                <blockquote>
+                    while (true) { <br>
+                    <blockquote>
+                        synchronized(this) { <br>
+                        <blockquote>
+                            while (suspend) { <br>
+                            <blockquote>
+                                try { <br>
+                                <blockquote>
+                                    wait(); <br>
+                                </blockquote>
+                                } catch (InterruptedException e) { <br>
+                                <br>
+                                } <br> 
+                            </blockquote>
+                            } <br>
+                        </blockquote>
+                        } <br>
+                    </blockquote>
+                    } <br>
+                    ... <br>
+                </blockquote>
+                } <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <br>
+        <h3 id="chapter_2_2_6">2.2.6 等待线程结束（join）和谦让（yield）</h3>
+        <p> JDK提供了以下2个join()方法：</p>
+        <blockquote>
+            public final void join() throws InterruptedException <br>
+            public final synchronized void join(long mills) throws InterruptedException <br>
+        </blockquote>
+        <p> 第一个join()方法表示无限等待，它会一直阻塞当前线程，直到目标线程执行完毕。</p>
+        <p> 第二个方法给出了一个最大等待时间，如果超过给定时间目标线程还在执行，当前线程也会因为<q>等不及了</q>，而继续往下执行。</p>
+        <p> 另一个比较有趣的方法，Thread.yield()，定义如下：</p>
+        <blockquote>
+            public static native void yield(); <br>
+        </blockquote>
+        <p> 这是一个静态方法，一旦执行，它会使当前线程让出CPU。但这并不表示当前线程不执行了，它还会进行CPU资源的争夺，但是是否能够再次被分配到，就不一定了。</p>
+        <p> 如果觉得一个线程不那么重要，或者优先级非常低，而且又害怕它会占用太多的CPU资源，那么可以在适当的时候调用Thread.yield()，给予其他重要线程更多的工作机会。</p>
+        <br><br>
+        <h2 id="chapter_2_3"> 2.3 volatile与Java内存模型（JMM） </h2>
+        <p> 用volatile去申明一个变量时，就等于告诉了虚拟机，这个变量极有可能会被某些程序或者线程修改。为了确保这个变量被修改后，应用程序范围内的所有线程都能够<q>看到</q>这个改动，虚拟机就必须采用一些特殊的手段，保证这个变量的可见性等特点。</p>
+        <p> volatile对于保证操作的原子性有非常大的帮助，但volatile并不能代替锁，它也无法保证一些复合操作的原子性。</p>
+        <p> volatile也能保证数据的可见性和有序性。</p>
+        <p> 可以使用Java虚拟机参数-server切换到Server模式。</p>
+        <br><br>
+        <h2 id="chapter_2_4"> 2.4 分门别类的管理：线程组 </h2>
+        <p> ThreadGroup：线程租，两个重要的功能：</p>
+        <ul>
+            <li> activeCount()可以获得活动线程的总数，但由于线程是动态的，因此这个值只是一个估计值，无法确定精确。</li>
+            <li> list()方法可以打印这个线程组中所有的线程信息，对调试有一定帮助。</li>
+        </ul>
+        <p> 线程租还有一个方法stop()，它会停止线程组中所有的线程，但它会遇到和Thread.stop()相同的问题，因此慎用。</p>
+        <br><br>
+        <h2 id="chapter_2_5"> 2.5 驻守后台：守护线程（Daemon） </h2>
+        <p> 守护线程是一种特殊的线程，它是系统的守护者，在后台默默地完成一些系统性的服务，比如垃圾回收线程、JIT线程就可以理解为守护线程。与之相对应的是用户线程，用户线程可以认为是系统的工作线程。</p>
+        <p> 守护线程要守护的对象已经不存在了，那么整个应用程序就自然应该结束。因此，当一个Java应用内，只有守护线程时，Java虚拟机就会自然退出。</p>
+        <p> 设置守护线程必须在线程start之前设置，设置方法为setDaemon(true)。</p>
+        <br><br>
+        <h2 id="chapter_2_6"> 2.6 先干重要的事：线程优先级 </h2>
+        <p> Java中的线程可以有自己的优先级。优先级高的线程在竞争资源时会更有优势，更可能抢占资源，当然，这只是一个概率问题。</p>
+        <p> 在Java中，使用1到10表示线程优先级。</p>
+        <p> 方法：setPriority() </p>
+        <br><br>
+        <h2 id="chapter_2_7"> 2.7 线程安全的概念与synchronized </h2>
+        <p> volatile并不能真正的保证线程安全。它只能确保一个线程修改了数据后，其他线程能看到这个改动。但当两个线程同时修改某一个数据时，却依然会产生冲突。</p>
+        <p> 关键字synchronized的作用是实现线程间的同步。它的工作是对同步的代码加锁，使得每一次，只能有一个线程进入同步块，从而保证线程间的安全性。</p>
+        <p> 关键字synchronized可以有多种用法：</p>
+        <ul>
+            <li> 指定加锁对象：对给定对象加锁，进入同步代码前要获得给定对象的锁。</li>
+            <li> 直接作用于实例方法：相当于对当前实例加锁，进入同步代码前要获得当前实例的锁。</li>
+            <li> 直接作用于静态方法：相当于对当前类加锁，进入同步代码前要获得当前类的锁。</li>
+        </ul>
+        <p> 除了用于线程同步、确保线程安全外，synchronized还可以保证线程间的可见性和有序性。</p>
+        <br><br>
+        <h2 id="chapter_2_8"> 2.8 程序中的幽灵：隐蔽的错误 </h2>
+        <br>
+        <h3 id="chapter_2_8_1">2.8.1 无提示的错误案例 </h3>
+        <br>
+        <h3 id="chapter_2_8_2">2.8.2 并发下的ArrayList </h3>
+        <p> ArrayList是一个线程不安全的容器，如果在多线程中使用ArrayList，可能会导致程序出错。</p>
+        <p> 改进的方法：使用线程安全的Vector代替ArrayList即可。</p>
+        <br>
+        <h3 id="chapter_2_8_3">2.8.3 并发下诡异的HashMap </h3>
+        <p> HashMap同样不是线程安全的。当你使用多线程访问HashMap时，也可能会遇到意想不到的错误。可能程序永远无法结束。</p>
+        <p> 最简单的解决方案：使用ConcurrentHashMap代替HashMap。</p>
+        <br>
+        <h3 id="chapter_2_8_4">2.8.4 初学者常见问题：错误的加锁 </h3>
+        <p> 在Java中，Integer属于不变对象，也就是对象一旦被创建，就不可能被修改。</p>
+        <br><br>
+        <h2 id="chapter_2_9"> 2.9 参考文献 </h2>
         <br><br><br>
         <h1 id="chapter_6"> 第6章 Java8与并发 </h1>
         <p> Java 8最主要的改进是增加了函数式编程的功能。</p>

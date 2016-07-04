@@ -53,6 +53,29 @@
                 <blockquote>
                     <p><a href="./index.html#chapter_2_7_1">2.7.1 EntityResolver用法</a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_2_8">2.8 解析及注册BeanDefinitions </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_2_8_1">2.8.1 profile属性的使用</a></p>
+                    <p><a href="./index.html#chapter_2_8_2">2.8.2 解析并注册BeanDefinition</a></p>
+                </blockquote>
+            </blockquote>
+            <p><a href="./index.html#chapter_3">第3章 默认标签的解析</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_3_1">3.1 bean标签的解析及注册</a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_1_1">3.1.1 解析BeanDefinition</a></p>
+                    <p><a href="./index.html#chapter_3_1_2">3.1.2 AbstractBeanDefinition属性</a></p>
+                    <p><a href="./index.html#chapter_3_1_3">3.1.3 解析默认标签中的自定义标签元素</a></p>
+                    <p><a href="./index.html#chapter_3_1_4">3.1.4 注册解析的BeanDefinition</a></p>
+                    <p><a href="./index.html#chapter_3_1_5">3.1.5 通知监听器解析及注册完成</a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_2">3.2 alias标签的解析</a></p>
+                <p><a href="./index.html#chapter_3_3">3.3 Import标签的解析</a></p>
+                <p><a href="./index.html#chapter_3_4">3.4 嵌入式beans标签的解析</a></p>
+            </blockquote>
+            <p><a href="./index.html#chapter_4">第4章 自定义标签的解析</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_4_1">4.1 自定义标签使用</a></p>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -360,5 +383,165 @@
         <h3 id="chapter_2_7_1"> 2.7.1 EntityResolver用法 </h3>
         <p> EntityResolver的作用是项目本身就可以提供一个如何寻找DTD声明的方法，即由程序来实现寻找DTD声明的过程，这样就避免了通过网络来寻找相应的声明。</p>
         <p> Spring中使用DelegatingEntityResolver类为EntityResolver的实现类。</p>
+        <br><br>
+        <h2 id="chapter_2_8"> 2.8 解析及注册BeanDefinitions </h2>
+        <p> 这个逻辑处理类就是BeanDefinitionDocumentReader。BeanDefinitionDocumentReader是一个接口，而实例化的工作是在createBeanDefinitionDocumentReader()中完成的，通过此方法，BeanDefinitionDocumentReader真正的类型是DefaultBeanDefinitionReader了，进入DefaultBeanDefinitionReader.registerBeanDefinitions()方法，发现最重要的就是提取root，以便再次将root作为参数继续BeanDefinition的注册。</p>
+        <p> 到了核心逻辑的底部doRegisterBeanDefinitions(root)，首先是对profile的处理，然后开始进行解析。</p>
+        <br>
+        <h3 id="chapter_2_8_1"> 2.8.1 profile属性的使用 </h3>
+        <p> 该特性可以让我们同时在配置文件中部署两套配置来适用于生产环境和开发环境，这样可以方便的进行切换开发、部署环境，最常用的就是更换不同的数据库。</p>
+        <br>
+        <h3 id="chapter_2_8_2"> 2.8.2 解析并注册BeanDefinition </h3>
+        <p> 处理了profile后就可以进行XML的读取了，跟踪代码进入parseBeanDefinitions(root, this.delegate)。</p>
+        <p> Spring的XML配置里面有两大类Bean声明，一个是默认的，如：</p>
+        <blockquote>
+            &lt;bean id="test" class="test.TestBean"/&gt;
+        </blockquote>
+        <p> 另一类是自定义的，如：</p>
+        <blockquote>
+            &lt;tx:annotation-driven/&gt;
+        </blockquote>
+        <br><br><br>
+        <h1 id="chapter_3"> 第3章 默认标签的解析 </h1>
+        <p> 默认标签的解析是在parseDefaultElement函数中进行的，函数中分别对4种不同标签（import、alias、bean和beans）做了不同的处理。</p>
+        <br><br>
+        <h2 id="chapter_3_1"> 3.1 bean标签的解析及注册 </h2>
+        <p> 进入函数processBeanDefinition(ele, delegate)，大致逻辑总结如下： </p>
+        <ol>
+            <li> 首先委托BeanDefinitionDelegate类的parseBeanDefinitionElement方法进行元素解析，返回BeanDefinitionHolder类型的实例bdHolder，经过这个方法后，bdHolder实例已经包含我们配置文件中配置的各种属性了，例如class、name、id、alias之类的属性。</li>
+            <li> 当返回的bdHolder不为空的情况下若存在默认标签的子节点下再有自定义属性，还需要再次对自定义标签进行解析。BeanDefinitionDelegate类的decorateBeanDefinitionIfRequired方法。</li>
+            <li> 解析完成后，需要对解析后的bdHolder进行注册，同样，注册操作委托给了BeanDefinitionReaderUtils的registerBeanDefinition方法。</li>
+            <li> 最后发出响应事件，通知相关的监听器，这个bean已经加载完成了。</li>
+        </ol>
+        <br>
+        <h3 id="chapter_3_1_1"> 3.1.1 解析BeanDefinition </h3>
+        <p> 进入BeanDefinitionDelegate类的parseBeanDefinitionElement方法：</p>
+        <ol>
+            <li> 提取元素中的id以及name属性。</li>
+            <li> 进一步解析其他所有属性并统一封装至GenericBeanDefinition类型的实例中。</li>
+            <li> 如果检测到bean没有指定beanName，那么使用默认规则为此Bean生成beanName。</li>
+            <li> 将获取到的信息封装到BeanDefinitionHolder的实例中。</li>
+        </ol>
+        <p> 进一步查看(2)中的parseBeanDefinitionElement方法：</p>
+        <h4> 1. 创建用于属性承载的BeanDefinition </h4>
+        <p> BeanDefinition及其实现类：</p>
+        <img width="698" height="370" src="http://www.myexception.cn/img/2012/09/19/2336354139.jpg">
+        <p> BeanDefinition是一个接口，在Spring中存在三种实现：RootBeanDefinition、ChildBeanDefinition以及GenericBeanDefinition。三种实现均继承了AbstractBeanDefinition，其中BeanDefinition是配置文件&lt;bean&gt;元素标签在容器中的内部表示形式。&lt;bean&gt;元素标签拥有class、scope、lazy-init等配置属性，BeanDefinition则提供了相应的beanClass、scope、lazyInit属性，BeanDefinition和&lt;bean&gt;中的属性一一对应的。其中RootBeanDefinition是最常用的实现类，它对应一般性的&lt;bean&gt;元素标签，GenericBeanDefinition是自2.5版本以后新加入的bean文件配置属性定义类，是一站式服务类。</p>
+        <p> 在配置文件中可以定义父&lt;<bean&gt;和子&lt;bean&gt;，父&lt;bean&gt;用RootBeanDefinition表示，而子&lt;bean&gt;用ChildBeanDefinition表示，而没有父&lt;bean&gt;的&lt;bean&gt;就使用RootBeanDefinition表示。AbstractBeanDefinition对两者共同的类信息进行抽象。</p>
+        <p> Spring通过BeanDefinition将配置文件中的&lt;bean&gt;转换为容器的内部表示，并将这些BeanDefinition注册到BeanDefinitionRegistry中。Spring容器的BeanDefinitionRegistry就像是Spring配置信息的内存数据库，主要是以map的形式保存，后续操作直接从BeanDefinitionRegistry中读取配置信息。</p>
+        <p> 要解析属性首先要创建用于承载属性的实例，也就是创建GenericBeanDefinition类型的实例。而代码createBeanDefinition(className, parent)的作用就是实现此功能。</p>
+        <h4> 2. 解析各种属性 </h4>
+        <p> 创建了bean信息的承载实例后，便可以进行bean信息的各种属性解析了，首先进入parseBeanDefinitionAttributes方法。parseBeanDefinitionAttributes方法是对element所有元素属性进行解析。</p>
+        <h4> 3. 解析子元素meta </h4>
+        <blockquote>
+            &lt;bean id="myTestBean" class="bean.MyTestBean"&gt;
+            <blockquote>
+                &lt;meta key="testStr" value-"aaaaaaaa" /&gt;
+            </blockquote>
+            &lt;/bean&gt;
+        </blockquote>
+        <p> 这段代码并不会体现在MyTestBean的属性当中，而是一个额外的声明，当需要使用里面的信息的时候可以通过BeanDefinition的getAttribute(key)方法进行获取。</p>
+        <h4> 4. 解析子元素lookup-method </h4>
+        <p> 获取器注入，获取器注入是一种特殊的方法注入，它是把一个方法声明为返回类型的bean，但实际要返回的bean是在配置文件里面配置的，此方法可用在设计有些可插拔的功能上，解除程序依赖。</p>
+        <h4> 5. 解析子元素replaced-method </h4>
+        <p> 这个方法主要是对bean中replaced-method子元素的提取，可以在运行时用新的方法替换现有的方法。与之前的look-up不同的是，replaced-methor不但可以动态地替换返回实体bean，而且还能动态地更改原有方法的逻辑。</p>
+        <p> 无论是look-up还是replaced-method都是构造了一个MethodOverride，并最终记录在了AbstractBeanDefinition中的methodOverrides属性中。</p>
+        <h4> 6. 解析子元素constructor-arg </h4>
+        <p> 对于constructor-arg子元素的解析，Spring是通过parseConstructorArgElements函数来实现的。提取所有constructor-arg，然后进行解析，但是具体的解析却被放置在了另一个函数parseConstructorArgElement中。</p>
+        <p> 首先是提取constructor-arg上必要的属性（index、type、name）。</p>
+        <p> 如果配置中指定了index属性，那么操作步骤如下：</p>
+        <ol>
+            <li> 解析constructor-arg的子元素。</li>
+            <li> 使用ConstructorArgumentValues.ValueHolder类型来封装解析出来的元素。</li>
+            <li> 将type、name和index属性统一并封装在ConstructorArgumentValues.ValueHolder类型中并添加至当前BeanDefinition的constructorArgumentValues的indexedArgumentValues属性中。</li>
+        </ol>
+        <p> 如果没有指定index属性，那么操作步骤如下：</p>
+        <ol>
+            <li> 解析constructor-arg的子元素。</li>
+            <li> 使用ConstructorArgumentValues.ValueHolder类型来封装解析出来的元素。</li>
+            <li> 将type、name和index属性统一并封装在ConstructorArgumentValues.ValueHolder类型中并添加至当前BeanDefinition的constructorArgumentValues的genericArgumentValues属性中。</li>
+        </ol>
+        <p> 对于是否指定index属性来讲，Spring的处理流程是不同的，关键在于属性信息被保存的位置。</p>
+        <p> 进入parsePropertyValue，解析构造函数配置中子元素。对构造函数中属性元素的解析，经历了一下几个过程：</p>
+        <ol>
+            <li> 略过description或者meta。</li>
+            <li> 提取constructor-arg上的ref和value属性，以便于根据规则验证正确性，其规则为在constructor-arg上不存在以下情况。
+                <ul>
+                    <li> 同时既有ref属性又有value属性。</li>
+                    <li> 存在ref属性或者value属性且又有子元素。</li>
+                </ul>
+            </li>
+            <li> ref属性的处理。使用RuntimeBeanReference封装对应的ref名称。</li>
+            <li> value属性的处理。使用TypedStringValue封装。</li>
+            <li> 子元素的处理。parsePropertySubElement中实现了对各种子元素的分类处理。</li>
+        </ol>
+        <h4> 7. 解析子元素property </h4>
+        <p> parsePropertyElement函数完成了对property属性的读取，提取所有property的子元素，然后调用parsePropertyElement处理。</p>
+        <p> 与构造函数注入方式不同的是将返回值使用PropertyValue进行封装，并记录在了BeanDefinition中的propertyValues属性中。</p>
+        <h4> 8. 解析子元素qualifier </h4>
+        <p> Spring允许我们通过Qualifier指定注入Bean的名称，来消除自动注入的歧义。</p>
+        <br>
+        <h3 id="chapter_3_1_2"> 3.1.2 AbstractBeanDefinition属性 </h3>
+        <p> GenericBeanDefinition只是子类实现，而大部分的通用属性都保存在了AbstractBeanDefinition中。</p>
+        <br>
+        <h3 id="chapter_3_1_3"> 3.1.3 解析默认标签中的自定义标签元素 </h3>
+        <p> bean自定义类型的解析：bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder) </p>
+        <p> 调用decorateBeanDefinitionIfRequired(ele, definitionHolder, null) </p>
+        <p> 这里将第三个参数设置为空，第三个参数是父类bean，当对某个嵌套配置进行分析时，这里需要传递父类beanDefinition。分析源码得知这里传递的参数其实是为了使用父类的scope属性，以备子类若没有设置scope时默认使用父类的属性，这里分析的是顶层配置，所以传递null。</p>
+        <p> 进一步跟踪分析，可以看到函数分别对元素的所有属性以及子节点进行了decorateIfRequired函数的调用。首先获取属性或者元素的命名空间，以此来判断该元素或者属性是否适用于自定义标签的解析条件，找出自定义类型所对应的NamespaceHandler并进行进一步解析。</p>
+        <p> 在decorateBeanDefinitionIfRequired中我们可以看到对于程序默认的标签的处理其实是直接略过的，这里只对自定义的标签或者说对bean的自定义属性感兴趣。在方法中实现了寻找自定义标签并根据自定义标签寻找命名空间处理器，并进行进一步的解析。</p>
+        <br>
+        <h3 id="chapter_3_1_4"> 3.1.4 注册解析的BeanDefinition </h3>
+        <p> processBeanDefinition函数中的BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry())代码，从代码可以看出，解析的beanDefinition都会被注册到BeanDefinitionRegistry类型的实例registry中，而对于beanDefinition的注册分成了两部分：通过beanName的注册以及通过别名的注册。 </p>
+        <h4> 1. 通过beanName注册BeanDefinition </h4>
+        <p> 在对于bean的注册处理方式上，主要进行了几个步骤：</p>
+        <ol>
+            <li> 对AbstractBeanDefinition的校验。主要是对于AbstractBeanDefinition属性中的methodOverrides校验，校验methodOverrides是否与工厂方法并存或者methodOverrides对应的方法根本不存在。</li>
+            <li> 对beanName已经注册的情况的处理。如果设置了不允许bean的覆盖，则需要抛出异常，否则直接覆盖。</li>
+            <li> 加入map缓存。</li>
+            <li> 清除解析之前留下的对应beanName的缓存。</li>
+        </ol>
+        <h4> 2. 通过别名注册BeanDefinition </h4>
+        <p> 注册alias的步骤如下：</p>
+        <ol>
+            <li> alias与beanName相同情况处理。若alias与beanName名称相同则不需要处理并删除原有alias。</li>
+            <li> alias覆盖处理。如果alias不允许被覆盖则抛出异常。</li>
+            <li> alias循环检查。当A->B存在时，若再次出现A->C->B时候则会抛出异常。</li>
+            <li> 注册alias。</li>
+        </ol>
+        <br>
+        <h3 id="chapter_3_1_5"> 3.1.5 通知监听器解析并注册完成 </h3>
+        <p> 通过代码getReaderContext().fireComponentRegistered(new BeanComponentDefinition(bdHolder))完成此工作，这里的实现只为扩展，当程序开发人员需要对注册BeanDefinition事件进行监听时可以通过注册监听器的方式并将处理逻辑写入监听器中，目前在Spring中并没有对此事件做任何逻辑处理。</p>
+        <br><br>
+        <h2 id="chapter_3_2"> 3.2 alias标签的解析 </h2>
+        <p> 在对bean进行定义时，除了使用id属性来指定名称之外，为了提供多个名称，可以使用alias标签来指定。而所有的这些名称都指向同一个bean，在某些情况下提供别名非常有用，比如为了让应用的每一个组件能更容易地对公共组件进行引用。</p>
+        <p> 然而，在定义bean时就指定所有的别名并不是总是恰当的。有时我们期望能在当前位置为那些在别处定义的bean引入别名。在XML配置文件中，可用单独的&lt;alias/&gt;元素来完成bean别名的定义。</p>
+        <br><br>
+        <h2 id="chapter_3_3"> 3.3 Import标签的解析 </h2>
+        <p> 在解析&lt;import&gt;标签时，Spring进行解析的步骤大致如下：</p>
+        <ol>
+            <li> 获取resource属性所表示的路径。</li>
+            <li> 解析路径中的系统属性，格式如"${user.dir}"。</li>
+            <li> 判定location是绝对路径还是相对路径。</li>
+            <li> 如果是绝对路径则递归调用bean的解析过程，进行另一次的解析。</li>
+            <li> 如果是相对路径则计算出绝对路径并进行解析。</li>
+            <li> 通知监听器，解析完成。</li>
+        </ol>
+        <br><br>
+        <h2 id="chapter_3_4"> 3.4 嵌入式beans标签的解析 </h2>
+        <p> 对于嵌入式beans标签来讲，与单独的配置文件并没有太大的差别。无非是递归调用beans的解析过程。</p>
+        <br><br><br>
+        <h1 id="chapter_4"> 第4章 自定义标签的解析 </h1>
+        <p> delegate.parseCustomElement(root) </p>
+        <br><br>
+        <h2 id="chapter_4_1"> 4.1 自定义标签使用 </h2>
+        <p> 扩展Spring自定义标签配置大致需要以下几个步骤：</p>
+        <ul>
+            <li> 创建一个需要扩展的组件。</li>
+            <li> 定义一个XSD文件描述组件内容。</li>
+            <li> 创建一个文件，实现BeanDefinitionParser接口，用来解析XSD文件中的定义和组件定义。</li>
+            <li> 创建一个Handler文件，扩展自NamespaceHandlerSupport，目的是将组件注册到Spring容器。</li>
+            <li> 编写Spring.handlers和Spring.schemas文件。</li>
+        </ul>
     </body>
 </html>
