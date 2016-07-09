@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <title>NOSQL系列专题：Redis快速入门</title>
+        <style type="text/css">
+            body {
+                background-color: #d2b48c;
+                margin-left: 10%;
+                margin-right: 10%;
+                border: 2px dotted black;
+                padding: 10px 10px 10px 10px;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> NOSQL系列专题：Redis快速入门 </h1>
+        <p>
+            出处：<a href="http://www.cnblogs.com/zhili/p/QuickstartRedis.html">http://www.cnblogs.com/zhili/p/QuickstartRedis.html</a>
+        </p>
+        <h2> Redis介绍</h2>
+        <p> Redis一般都用来做缓存的，当然也可以作为消息队列。</p>
+        <p> Redis是一个开源的使用ANSI C语言编写、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(链表)、set(集合)、zset(sorted set --有序集合)和hash（哈希类型）。</p>
+        <p> Redis支持各种不同方式的排序。</p>
+        <p> 与memcached一样，为了保证效率，数据都是缓存在内存中。区别的是redis会周期性的把更新的数据写入磁盘或者把修改操作写入追加的记录文件，并且在此基础上实现了master-slave(主从)同步。</p>
+        <p> Redis支持主从同步。数据可以从主服务器向任意数量的从服务器上同步，从服务器可以是关联其他从服务器的主服务器。这使得Redis可执行单层树复制。存盘可以有意无意的对数据进行写操作。</p>
+        <p> Redis支持两种持久化方式：</p>
+        <ul>
+            <li> snapshotting(快照)也是默认方式.(把数据做一个备份，将数据存储到文件) </li>
+            <li> Append-only file(缩写aof)的方式 </li>
+        </ul>
+        <p> 快照是默认的持久化方式，这种方式是将内存中数据以快照的方式写到二进制文件中，默认的文件名称为dump.rdb.可以通过配置设置自动做快照持久化的方式。我们可以配置redis在n秒内如果超过m个key键修改就自动做快照。</p>
+        <p> aof方式:由于快照方式是在一定间隔时间做一次的，所以如果redis意外down掉的话，就会丢失最后一次快照后的所有修改。aof比快照方式有更好的持久化性，是由于在使用aof时，redis会将每一个收到的写命令都通过write函数追加到文件中，当redis重启时会通过重新执行文件中保存的写命令来在内存中重建整个数据库的内容。</p>
+    </body>
+</html>
