@@ -94,6 +94,9 @@
                 </blockquote>
             </blockquote>
             <p><a href="./index.html#chapter_5">第5章 bean的加载</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_5_1">5.1 FactoryBean的使用</a></p>
+            </blockquote>
         </blockquote>
         <br><br><br>
         <h1 id="forword">前言</h1>
@@ -597,5 +600,37 @@
         <blockquote>
             MyTestBean bean = (MyTestBean) bf.getBean("myTestBean"); <br>
         </blockquote>
+        <p> 加载过程中所涉及的步骤大致如下：</p>
+        <ol>
+            <li> 
+                转换对应beanName。
+                <ul> 
+                    <li> 去除FactoryBean的修饰符。</li>
+                    <li> 取指定alias所表示的最终beanName。</li> 
+                </ul>
+            </li>
+            <li> 尝试从缓存中加载单例。</li>
+            <li> bean的实例化。如果从缓存中得到了bean的原始状态，则需要对bean进行实例化。</li>
+            <li> 原型模式的依赖检查。只有在单例情况下才会尝试解决循环依赖。</li>
+            <li> 检测parentBeanFactory。如果缓存没有数据的话直接转到父类工厂上去加载。</li>
+            <li> 将存储XML配置文件的GenericBeanDefinition转换为RootBeanDefinition。</li>
+            <li> 寻找依赖。在Spring的加载顺序中，在初始化某一个bean的时候首先会初始化这个bean所对应的依赖。</li>
+            <li> 针对不同的scope进行bean的创建。</li>
+            <li> 类型转换。</li>
+        </ol>
+        <br><br>
+        <h2 id="chapter_5_1"> 5.1 FactoryBean的使用 </h2>
+        <p> 一般情况下，Spring通过反射机制利用bean的class属性指定实现类来实例化bean。在某些情况下，实例化bean过程比较复杂，若采用编码的方式可能会得到一个简单的方案。Spring为此提供了一个org.Springframework.bean.factory.FactoryBean的工厂类接口，用户可以通过实现该接口定制实例化bean的逻辑。</p>
+        <p> 从Spring 3.0开始，FactoryBean开始支持泛型，即接口声明改为FactoryBean&lt;T&gt;的形式。</p>
+        <blockquote>
+            public interface FactoryBean<T> { <br>
+            <blockquote>
+                T getObject() throws Exception; <br>
+                Class&lt;?&gt; getObjectType(); <br>
+                boolean isSingleton(); <br>
+            </blockquote>
+            } <br>
+        </blockquote>
+        <p> 当配置文件中&lt;bean&gt;的class属性配置的实现类是FactoryBean时，通过getBean()方法返回的不是FactoryBean本身，而是FactoryBean#getObject()方法所返回的对象。如果需要返回FactoryBean本身，则需要在使用getBean(beanName)方法时在beanName前显示的加上<q>&amp;</q>，例如getBean("&amp;car")。</p>
     </body>
 </html>
