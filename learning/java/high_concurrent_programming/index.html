@@ -23,7 +23,7 @@
         </script>
     </head>
     <body>
-        <img width="500" height="666" src="http://img3.imgtn.bdimg.com/it/u=3432214517,2629535198&fm=15&gp=0.jpg">
+        <img width="500" height="666" src="http://img3.douban.com/lpic/s28339364.jpg">
         <br><br><br>
         <h1> 目录 </h1>
 
@@ -488,6 +488,30 @@
         <br>
         <h3 id="chapter_3_1_1">3.1.1 synchronized的功能扩展：重入锁 </h3>
         <p> 重入锁可以完全替代synchronized关键字。在JDK5.0的早期版本中，重入锁的性能远远好于synchronized，但从JDK6.0开始，JDK在synchronized上做了大量的优化，使得两者的性能差距并不大。</p>
+        <p> 重入锁使用java.util.concurrent.locks.ReentrantLock类来实现。</p>
+        <p> 重入锁可以反复进入，即允许一个线程连续多次获得一把锁。如果同一个线程多次获得锁，那么在释放锁的时候，也必须释放相同的次数。</p>
+        <p> 对于synchronized来说，如果一个线程在等待锁，那么结果只有两种情况，要么它获得这把锁继续执行，要么就保持等待。而使用重入锁，则提供了另外一种可能，那就是线程可以被中断。也就是在等待锁的过程中，程序可以根据需要取消对所的请求。方法：lockInterruptibly()。</p>
+        <p> 除了等待外部通知之外，要避免死锁还有另外一种方法，那就是限时等待。方法：tryLock()。</p>
+        <p> tryLock()方法也可以不带参数直接运行。在这种情况下，当前线程会尝试获得锁，如果锁并未被其他线程占用，则申请锁会成功，并立即返回true。如果锁被其他线程占用，则当前线程不会进行等待，而是立即返回false。这种模式不会引起线程等待，因此也不会产生死锁。</p>
+        <p> 如果我们使用synchromized关键字进行锁控制，那么产生的锁就是非公平的。而重入锁允许我们对其公平性进行设置。它有一个如下的构造函数：</p>
+        <blockquote>
+            public ReentrantLock(boolean fair) <br>
+        </blockquote>
+        <p> 当参数fair为true时，表示锁是公平的。要实现公平锁必然要求系统维护一个有序队列，因此公平锁的实现成本比较高，性能相对也非常低下，因此默认情况下，锁是非公平的。如果没有特别的需求，也不需要使用公平锁。</p>
+        <p> ReentrantLock的几个重要方法整理如下：</p>
+        <ul>
+            <li> lock()：获得锁，如果锁已经被占用，则等待。</li>
+            <li> lockInterruptibly()：获得锁，但优先响应中断。</li>
+            <li> tryLock()：尝试获得锁，如果成功，返回true，失败返回false。该方法不等待，立即返回。</li>
+            <li> tryLock(long time, TimeUnit unit)：在给定时间内尝试获得锁。</li>
+            <li> unlock()：释放锁。</li>
+        </ul>
+        <p> 在重入锁的实现中，主要包含三个要素：</p>
+        <ol>
+            <li> 原子状态。使用CAS操作来存储当前锁的状态，判断锁是否已经被别的线程持有。</li>
+            <li> 等待队列。所有没有请求到锁的线程，会进入等待队列进行等待。待有线程释放锁后，系统就能从等待队列中唤醒一个线程，继续工作。</li>
+            <li> 阻塞原语park()和unpark()，用来挂起和恢复线程。没有得到锁的线程将会被挂起。</li>
+        </ol>
         <br><br><br>
         <h1 id="chapter_6"> 第6章 Java8与并发 </h1>
         <p> Java 8最主要的改进是增加了函数式编程的功能。</p>
