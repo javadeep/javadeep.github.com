@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <title>消息队列设计精要</title>
+        <style type="text/css">
+            body {
+                background-color: #d2b48c;
+                margin-left: 10%;
+                margin-right: 10%;
+                border: 2px dotted black;
+                padding: 10px 10px 10px 10px;
+                font-family: sans-serif;
+            }
+        </style>
+
+        <script>
+            var _hmt = _hmt || [];
+            (function() {
+                var hm = document.createElement("script");
+                hm.src = "//hm.baidu.com/hm.js?12f9141c4785ae802a266b3815f53eb6";
+                var s = document.getElementsByTagName("script")[0]; 
+                s.parentNode.insertBefore(hm, s);
+            })();
+        </script>
+    </head>
+    <body>
+        <h1> 消息队列设计精要 </h1>
+        <p>
+            出处：<a href="http://tech.meituan.com/mq-design.html">http://tech.meituan.com/mq-design.html</a>
+        </p>
+        <p> 消息队列已经逐渐成为企业IT系统内部通信的核心手段。它具有低耦合、可靠投递、广播、流量控制、最终一致性等一系列功能，成为异步RPC的主要手段之一。</p>
+        <h2> 何时需要消息队列？</h2>
+        <p> 可以使用mq的场景有很多，最常用的几种，是做业务解耦/最终一致性/广播/错峰流控等。</p>
+        <p> 如果需要强一致性，关注业务逻辑的处理结果，则RPC显得更为合适。</p>
+        <h3> 解耦 </h3>
+        <p> 所谓解耦，简单点讲就是一个事务，只关心核心的流程。而需要依赖其他系统但不那么重要的事情，有通知即可，无需等待结果。换句话说，基于消息的模型，关心的是“通知”，而非“处理”。</p>
+        <h3> 最终一致性 </h3>
+        <p> 最终一致性指的是两个系统的状态保持一致，要么都成功，要么都失败。当然有个时间限制，理论上越快越好，但实际上在各种异常的情况下，可能会有一定延迟达到最终一致状态，但最后两个系统的状态是一样的。</p>
+        <p> 最终一致性不是消息队列的必备特性，但确实可以依靠消息队列来做最终一致性的事情。</p>
+        <h3> 广播 </h3>
+        <p> 消息队列的基本功能之一是进行广播。如果没有消息队列，每当一个新的业务方接入，我们都要联调一次新接口。有了消息队列，我们只需要关心消息是否送达了队列，至于谁希望订阅，是下游的事情，无疑极大地减少了开发和联调的工作量。</p>
+        <h3> 错峰与流控 </h3>
+        <p> 利用中间系统转储两个系统的通信内容，并在下游系统有能力处理这些消息的时候，再处理这些消息。</p>
+        <h2> 如何设计一个消息队列 </h2>
+    </body>
+</html>
