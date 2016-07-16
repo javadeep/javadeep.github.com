@@ -165,7 +165,22 @@
                 <p><a href="./index.html#chapter_5_2">5.2 案例分析 </a></p>
                 <blockquote>
                     <p><a href="./index.html#chapter_5_2_1">5.2.1 高性能硬件上的程序部署策略 </a></p>
+                    <p><a href="./index.html#chapter_5_2_2">5.2.2 集群间同步导致的内存溢出 </a></p>
+                    <p><a href="./index.html#chapter_5_2_3">5.2.3 堆外内存导致的溢出错误 </a></p>
+                    <p><a href="./index.html#chapter_5_2_4">5.2.4 外部命令导致系统缓慢 </a></p>
+                    <p><a href="./index.html#chapter_5_2_5">5.2.5 服务器JVM进程崩溃 </a></p>
+                    <p><a href="./index.html#chapter_5_2_6">5.2.6 不恰当数据结构导致内存占用过大 </a></p>
+                    <p><a href="./index.html#chapter_5_2_7">5.2.7 由Windows虚拟内存导致的长时间停顿 </a></p>
                 </blockquote>
+                <p><a href="./index.html#chapter_5_3">5.3 实战：Eclipse运行速度调优 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_5_3_1">5.3.1 调优前的程序运行状态 </a></p>
+                    <p><a href="./index.html#chapter_5_3_2">5.3.2 升级JDK 1.6的性能变化及兼容问题 </a></p>
+                    <p><a href="./index.html#chapter_5_3_3">5.3.3 编译时间和类加载时间的优化 </a></p>
+                    <p><a href="./index.html#chapter_5_3_4">5.3.4 调整内存设置控制垃圾收集频率 </a></p>
+                    <p><a href="./index.html#chapter_5_3_5">5.3.5 选择收集器降低延迟 </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_5_4">5.4 本章小结 </a></p>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -729,5 +744,40 @@
             <li> 各个节点仍然不可避免地受到32位的内存限制。</li>
             <li> 大量使用本地缓存的应用，在逻辑集群中会造成较大的内存浪费，因为每个逻辑节点上都有一份缓存，这时候可以考虑把本地缓存改为集中式缓存。</li>
         </ul>
+        <br>
+        <h3 id="chapter_5_2_2"> 5.2.2 集群间同步导致的内存溢出 </h3>
+        <br>
+        <h3 id="chapter_5_2_3"> 5.2.3 堆外内存导致的溢出错误 </h3>
+        <p> 除了Java堆和永久代之外，下面这些区域还会占用较多的内存，这里所有的内存总和受到操作系统进程最大内存的限制。</p>
+        <ul>
+            <li> Direct Memory：可通过-XX:MaxDirectMemorySize调整大小，内存不足时抛出OutOfMemoryError或者OutOfMemoryError：Direct buffer memory。</p>
+            <li> 线程堆栈：可通过-Xss调整大小，内存不足时抛出StackOverflowError（纵向无法分配，即无法分配新的帧栈）或者OutOfMemoryError：unable to create new native thread（横向无法分配，即无法建立新的线程）。</li>
+            <li> Socket缓存区：每个Socket连接都Receive和Send两个缓存区，分别占大约37KB和25KB内存，连接多的话这块内存占用也比较可观。如果无法分配，则可能会抛出IOException：Too many open files异常。</li>
+            <li> JNI代码：如果代码中使用JNI调用本地库，那本地库使用的内存也不在堆中。</li>
+            <li> 虚拟机和GC：虚拟机、GC的代码执行也要消耗一定的内存。</li>
+        </ul>
+        <br>
+        <h3 id="chapter_5_2_4"> 5.2.4 外部命令导致系统缓慢 </h3>
+        <p> Java虚拟机执行Shell命令的过程是：首先克隆一个和当前虚拟机拥有一样环境变量的进程，再用这个新的进程去执行外部命令，最后再退出这个进程。如果频繁执行这个操作，系统的消耗会很大，不仅是CPU，内存负担也很重。</p>
+        <br>
+        <h3 id="chapter_5_2_5"> 5.2.5 服务器JVM进程崩溃 </h3>
+        <br>
+        <h3 id="chapter_5_2_6"> 5.2.6 不恰当数据结构导致内存占用过大 </h3>
+        <br>
+        <h3 id="chapter_5_2_7"> 5.2.7 由Windows虚拟机内存导致的长时间停顿 </h3>
+        <br><br>
+        <h2 id="chapter_5_3"> 5.3 实战：Eclipse运行速度调优 </h2>
+        <br>
+        <h3 id="chapter_5_3_1"> 5.3.1 调优前的程序运行状态 </h3>
+        <br>
+        <h3 id="chapter_5_3_2"> 5.3.2 升级JDK 1.6的性能变化及兼容问题 </h3>
+        <br>
+        <h3 id="chapter_5_3_3"> 5.3.3 编译时间和类加载时间的优化 </h3>
+        <br>
+        <h3 id="chapter_5_3_4"> 5.3.4 调整内存设置控制垃圾收集频率 </h3>
+        <br>
+        <h3 id="chapter_5_3_5"> 5.3.5 选择收集器降低延迟 </h3>
+        <br><br>
+        <h2 id="chapter_5_4"> 5.4 本章小结 </h2>
     </body>
 </html>
