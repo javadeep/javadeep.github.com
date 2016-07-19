@@ -183,6 +183,14 @@
                 <p><a href="./index.html#chapter_5_4">5.4 本章小结 </a></p>
             </blockquote>
         </blockquote>
+        <p><a href="./index.html#part_3">第三部分 虚拟机执行子系统</a></p>
+        <blockquote>
+            <p><a href="./index.html#chapter_6">第6章 类文件结构</a></p>
+            <blockquote>
+                <p><a href="./index.html#chapter_6_1">6.1 概述 </a></p>
+                <p><a href="./index.html#chapter_6_2">6.2 无关性的基石 </a></p>
+            </blockquote>
+        </blockquote>
         <br><br><br>
         <h1 id="forword">前言</h1>
         <p> 在绝大多数情况下，提升硬件效能无法等比例地提升程序的运作性能和并发能力，甚至可能对程序运作状况完全没有任何改善。原因有：</p>
@@ -779,5 +787,18 @@
         <h3 id="chapter_5_3_5"> 5.3.5 选择收集器降低延迟 </h3>
         <br><br>
         <h2 id="chapter_5_4"> 5.4 本章小结 </h2>
+        <br><br><br>
+        <h1 id="part_3"> 第三部分 虚拟机执行子系统 </h1>
+        <p><a href="./index.html#chapter_6">第6章 类文件结构</a></p>
+        <br><br><br>
+        <h1 id="chapter_6"> 第6章 类文件结构 </h1>
+        <p> 代码编译的结果是从本地机器码转变为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。</p>
+        <br><br>
+        <h2 id="chapter_6_1"> 6.1 概述 </h2>
+        <p> 越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式。</p>
+        <br><br>
+        <h2 id="chapter_6_2"> 6.2 无关性的基石 </h2>
+        <p> 实现语言无关行的基础仍然是虚拟机和字节码存储格式。Java虚拟机不和包括Java在内的任何语言绑定，它只与<q>Class文件</q>这种特定的二进制文件格式所关联，Class文件中包含了Java虚拟机指令集和符号表以及若干其他辅助信息。</p>
+        <p> 虚拟机并不关心Class的来源是何种语言。</p>
     </body>
 </html>
