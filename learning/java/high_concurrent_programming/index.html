@@ -103,6 +103,12 @@
                     <p><a href="./index.html#chapter_3_1_3">3.1.3 允许多个线程同时访问：信号量（Semaphore） </a></p>
                     <p><a href="./index.html#chapter_3_1_4">3.1.4 ReadWriteLock 读写锁 </a></p>
                     <p><a href="./index.html#chapter_3_1_5">3.1.5 倒计时器：CountDownLatch </a></p>
+                    <p><a href="./index.html#chapter_3_1_6">3.1.6 循环栅栏：CyclicBarrier </a></p>
+                    <p><a href="./index.html#chapter_3_1_7">3.1.7 线程阻塞工具类：LockSupport </a></p>
+                </blockquote>
+                <p><a href="./index.html#chapter_3_2">3.2 线程复用：线程池 </a></p>
+                <blockquote>
+                    <p><a href="./index.html#chapter_3_2_1">3.2.1 什么是线程池 </a></p>
                 </blockquote>
             </blockquote>
             <p><a href="./index.html#chapter_6">第6章 Java8与并发</a></p>
@@ -554,6 +560,36 @@
             public CountDownLatch(int count); <br>
         </blockquote>
         <p> 主线程在CountDownLatch上等待，当所有检查任务全部完成后，主线程方能继续执行。</p>
+        <br>
+        <h3 id="chapter_3_1_6">3.1.6 循环栅栏：CyclicBarrier </h3>
+        <p> CyclicBarrier是另外一种多线程并发控制实用工具。和CountDownLatch非常类似，它也可以实现线程间的计数等待，但它的功能比CountDownLatch更加复杂且强大。</p>
+        <p> 内在含义：计数器可以反复使用。比如，假设我们将计数器设置为10，那么凑齐第一批10个线程后，计数器就会归零，然后接着凑齐下一批10个线程。</p>
+        <p> 比CountDownLatch略微强大一些，CyclicBarrier可以接受一个参数作为barrierAction。所谓barrierAction就是当计数器一次计数完成后，系统会执行的动作，构造函数如下：</p>
+        <blockquote>
+            public CyclicBarrier(int parties, Runnable barrierAction) <br>
+        </blockquote>
+        <p> 其中，parties表示计数总数，也就是参与的线程总数。</p>
+        <p> CyclicBarrier.await()方法可能会抛出两个异常。一个是InterruptedException，也就是在等待过程中，线程被中断；另外一个异常则是CyclicBarrier特有的BrokenBarrierException。一旦遇到这个异常，则表示当前的CyclicBarrier已经破损了，可能系统已经没有办法等待所有线程到齐了。如果继续等待，可能就是徒劳无功的。</p>
+        <br>
+        <h3 id="chapter_3_1_7">3.1.7 线程阻塞工具类：LockSupport </h3>
+        <p> LockSupport是一个非常方便实用的线程阻塞工具，它可以在线程内任意位置让线程阻塞，和Thread.suspend()相比，它弥补了由于resume()在前发生，导致线程无法继续执行的情况。和Object.wait()相比，它不需要先获得某个对象的锁，也不会抛出InterruptedException异常。</p>
+        <p> LockSupport的静态方法park()可以阻塞当前线程，类似的还有parkNanos()、parkUntil()等方法。它们实现了一个限时的等待。</p>
+        <p> LockSupport类使用类似信号量的机制。它为每一个线程准备了一个许可，如果许可可用，那么park()函数会立即返回，并且消费这个许可（也就是将许可变为不可用），如果许可不可用，就会阻塞。而unpark()则使得一个许可变为可用（但是和信号量不同的是，许可不能累加，你不可能拥有超过一个许可，它永远只有一个）。这个特点使得：即使unpark()操作发生在park()之前，它也可以使下一次的park()操作立即返回。</p>
+        <p> 处于park()挂起状态的线程不会像suspend()那样还给出一个令人费解的Runnable的状态。它会非常明确地给出一个WAITING状态，甚至还会标注是park()引起的。</p>
+        <p> 除了有定时阻塞的功能外，LockSupport.park()还能支持中断影响。但是和其他接收中断的函数很不一样，LockSupport.park()不会抛出InterruptedException异常。它只是会默默的返回。但是我们可以从Thread.interrupted()等方法获得中断标记。</p>
+        <br><br>
+        <h2 id="chapter_3_2"> 3.2 线程复用：线程池 </h2>
+        <p> 多线程的软件设计方法确实可以最大限度地发挥现代多核处理器的计算能力，提高生产系统的吞吐量和性能。但是，若不加控制和管理的随意使用线程，对系统的性能反而会产生不利的影响。</p>
+        <ul>
+            <li> 虽然与进程相比，线程是一种轻量级的工具，但其创建和关闭依然需要花费时间。</li>
+            <li> 线程本身也要占用内存空间的，大量的线程会抢占宝贵的内存资源，如果处理不当，可能会导致Out of Memory异常。即便没有，大量的线程回收也会给GC带来很大的压力，延长GC的停顿时间。 </li>
+        </ul>
+        <p> 对线程的使用必须掌握一个度，在有限的范围内，增加线程的数量可以明显提高系统的吞吐量，但一旦超出了这个范围，大量的线程只会拖垮应用系统。因此，在生产环境中使用线程，必须对其加以控制和管理。</p>
+        <p> 在实际生产环境中，线程的数量必须得到控制。盲目的大量创建线程对系统性能是有伤害的。</p>
+        <br>
+        <h3 id="chapter_3_2_1">3.2.1 什么是线程池 </h3>
+        <p> 线程池中，总有那么几个活跃线程。当你需要使用线程时，可以从池子中随便拿一个空闲线程，当完成工作时，并不着急着关闭线程，而是将这个线程退回到池子，方便其他人使用。</p>
+        <p> 在使用线程池后，创建线程变成了从线程池获得空闲线程，关闭线程变成了向池子归还线程。</p>
         <br><br><br>
         <h1 id="chapter_6"> 第6章 Java8与并发 </h1>
         <p> Java 8最主要的改进是增加了函数式编程的功能。</p>

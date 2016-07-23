@@ -99,6 +99,11 @@
                 <p><a href="./index.html#chapter_5_2">5.2 缓存中获取单例bean</a></p>
                 <p><a href="./index.html#chapter_5_3">5.3 从bean的实例中获取对象</a></p>
                 <p><a href="./index.html#chapter_5_4">5.4 获取单例</a></p>
+                <p><a href="./index.html#chapter_5_5">5.5 准备创建bean</a></p>
+                <blockquote>
+                   <p><a href="./index.html#chapter_5_5_1">5.5.1 处理override属性</a></p>
+                   <p><a href="./index.html#chapter_5_5_2">5.5.2 实例化的前置处理</a></p> 
+                </blockquote>
             </blockquote>
         </blockquote>
         <br><br><br>
@@ -674,5 +679,29 @@
         </ol>
         <p> 真正获取单例bean的逻辑是在ObjectFactory类型的实例singletonFactory中实现的。</p>
         <p> ObjectFactory的核心部分其实只是调用了createBean的方法。</p>
+        <br><br>
+        <h2 id="chapter_5_5"> 5.5 准备创建bean </h2>
+        <p> Spring代码规律：一个真正干活的函数其实是以do开头的。</p>
+        <p> createBean函数中做的工作：</p>
+        <ol>
+            <li> 根据设置的class属性或者根据className来解析Class。</li>
+            <li> 对overrice属性进行标记及验证。在Spring配置中是存在lookup-method和replace-method的，而这两个配置的加载其实就是将配置统一存放在BeanDefinition中的methodOverrides属性里，而这个函数的操作其实也就是针对于这两个配置的。</li>
+            <li> 应用初始化前的后处理器，解析指定bean是否存在初始化前的短路操作。</li>
+            <li> 创建bean。</li>
+        </ol>
+        <br>
+        <h3 id="chapter_5_5_1"> 5.5.1 处理override属性 </h3>
+        <p> 查看AbstractBeanDefinition类的prepareMethodOverrides方法。</p>
+        <p> 在bean实例化的时候如果检测到存在methodOverrides属性，会动态地为当前bean生成代理并使用对应的拦截器为bean做增强处理。</p>
+        <br>
+        <h3 id="chapter_5_5_2"> 5.5.2 实例化的前置处理 </h3>
+        <p> 关键部分：在函数中提供了一个短路判断 </p>
+        <blockquote>
+            if (bean != null ) { <br>
+            <blockquote>
+                return bean; <br>
+            </blockquote>
+            } <br>
+        </blockquote>
     </body>
 </html>
